@@ -1,9 +1,6 @@
 # GetFast
 
-After cloning this repository, recreate the Gradle wrapper with:
+Android app using MVVM architecture to monitor eBay Kleinanzeigen for new housing listings and notify users via push notifications.
 
-```
-gradle wrapper
-```
+This repository currently contains the initial project setup.
 
-This command generates the `gradle/wrapper/gradle-wrapper.jar` and related scripts.

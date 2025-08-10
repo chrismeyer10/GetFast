@@ -5,10 +5,12 @@
 # Ignore Gradle GUI config
 gradle-app.setting
 
-# Ignore Gradle wrapper jar file
-gradle-wrapper.jar
+# Ignore Gradle wrapper binaries
+gradlew
+gradlew.bat
+gradle/wrapper/gradle-wrapper.jar
 
-# Avoid ignore Gradle wrappper properties
+# Keep wrapper properties
 !gradle-wrapper.properties
 
 # Cache of project
@@ -19,3 +21,6 @@ gradle-wrapper.jar
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# Ignore Gradle build output directory
+build
