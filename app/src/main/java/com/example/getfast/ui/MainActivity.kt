@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,11 +37,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val notifier = Notifier(this)
+        @OptIn(ExperimentalMaterial3Api::class)
         setContent {
             MaterialTheme {
                 val listings by viewModel.listings.collectAsState()
                 val lastFetch by viewModel.lastFetchTime.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
+                val isRefreshing by viewModel.isRefreshing.collectAsState()
                 var showFavoritesOnly by remember { mutableStateOf(false) }
                 val seenIds = remember { mutableSetOf<String>() }
                 LaunchedEffect(listings) {
@@ -71,19 +73,30 @@ class MainActivity : ComponentActivity() {
                             Text(text = stringResource(id = R.string.refresh))
                         }
                     }
-                    TabRow(selectedTabIndex = if (showFavoritesOnly) 1 else 0) {
-                        Tab(selected = !showFavoritesOnly, onClick = { showFavoritesOnly = false }) {
-                            Text(text = stringResource(id = R.string.all_tab))
-                        }
-                        Tab(selected = showFavoritesOnly, onClick = { showFavoritesOnly = true }) {
-                            Text(text = stringResource(id = R.string.favorites_tab))
-                        }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    ) {
+                        FilterChip(
+                            selected = !showFavoritesOnly,
+                            onClick = { showFavoritesOnly = false },
+                            label = { Text(text = stringResource(id = R.string.all_tab)) },
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        FilterChip(
+                            selected = showFavoritesOnly,
+                            onClick = { showFavoritesOnly = true },
+                            label = { Text(text = stringResource(id = R.string.favorites_tab)) },
+                        )
                     }
                     ListingList(
                         listings = listings,
                         favorites = favorites,
                         favoritesOnly = showFavoritesOnly,
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
+                        onRefresh = { viewModel.refreshListings() },
+                        isRefreshing = isRefreshing,
                         modifier = Modifier.weight(1f)
                     )
                     Text(

@@ -10,6 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -41,12 +46,15 @@ import com.example.getfast.R
 import com.example.getfast.model.Listing
 import com.example.getfast.utils.ListingDateUtils
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ListingList(
     listings: List<Listing>,
     favorites: Set<String>,
     favoritesOnly: Boolean,
     onToggleFavorite: (Listing) -> Unit,
+    onRefresh: () -> Unit,
+    isRefreshing: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -58,19 +66,28 @@ fun ListingList(
         listings
     }
 
-    LazyColumn(
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, onRefresh)
+    Box(
         modifier = modifier
             .fillMaxSize()
+            .pullRefresh(pullRefreshState)
             .padding(16.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f))
     ) {
-        items(shownListings) { listing ->
-            ListingCard(
-                listing = listing,
-                isFavorite = favorites.contains(listing.id),
-                onToggleFavorite = onToggleFavorite
-            ) { selectedListing = listing }
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(shownListings) { listing ->
+                ListingCard(
+                    listing = listing,
+                    isFavorite = favorites.contains(listing.id),
+                    onToggleFavorite = onToggleFavorite
+                ) { selectedListing = listing }
+            }
         }
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 
     selectedListing?.let { listing ->
@@ -148,7 +165,7 @@ fun ListingCard(
                     if (isNew) {
                         append(" ")
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
-                            append("NEU")
+                            append("Neu")
                         }
                     }
                     append(" • ${listing.district}, ${listing.city} • ")
