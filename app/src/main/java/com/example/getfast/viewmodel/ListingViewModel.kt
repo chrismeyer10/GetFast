@@ -27,7 +27,7 @@ class ListingViewModel(
 
     fun refreshListings() {
         viewModelScope.launch {
-            _listings.value = repository.fetchLatestListings().reversed()
+            _listings.value = repository.fetchLatestListings()
             _lastFetchTime.value = formatter.format(Date())
         }
     }
