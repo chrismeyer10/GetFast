@@ -10,7 +10,7 @@ object ListingDateUtils {
 
     fun isRecent(dateString: String, now: Date = Date()): Boolean {
         return try {
-            val listingDate = parseDate(dateString) ?: return false
+            val listingDate = parseDate(dateString, now) ?: return false
             val diff = now.time - listingDate.time
             diff in 0 until 10 * 60 * 1000
         } catch (_: Exception) {
@@ -18,14 +18,20 @@ object ListingDateUtils {
         }
     }
 
-    private fun parseDate(dateString: String): Date? {
+    private fun parseDate(dateString: String, now: Date): Date? {
         return try {
-            if (dateString.startsWith("Heute")) {
-                val timePart = dateString.substringAfter(",").trim().take(5)
-                val today = dateFormatter.format(Date())
-                dateTimeFormatter.parse("$today $timePart")
-            } else {
-                null
+            when {
+                dateString.startsWith("Heute") -> {
+                    val timePart = dateString.substringAfter(",").trim().take(5)
+                    val today = dateFormatter.format(now)
+                    dateTimeFormatter.parse("$today $timePart")
+                }
+                dateString.startsWith("Vor") -> {
+                    val minutes = Regex("Vor\\s+(\\d+)\\s+Min").find(dateString)?.groupValues?.get(1)?.toIntOrNull()
+                    minutes?.let { Date(now.time - it * 60 * 1000) }
+                }
+                dateString.startsWith("Gerade") -> now
+                else -> null
             }
         } catch (_: Exception) {
             null
