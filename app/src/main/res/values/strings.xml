@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">GetFast</string>
-    <string name="show_details">Details</string>
-    <string name="show_summary">Zusammenfassung</string>
+    <string name="last_fetch">Letztes Update: %1$s</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="all_tab">Alle</string>
+    <string name="favorites_tab">Favoriten</string>
+    <string name="favorite">Favorit</string>
+    <string name="not_favorite">Nicht Favorit</string>
+    <string name="open_in_app">In App öffnen</string>
+    <string name="open_in_browser">Im Browser öffnen</string>
+    <string name="open_listing">Anzeige öffnen</string>
     <string name="copyright">\u00A9 2024 Christian Meyer</string>
 </resources>
