@@ -32,9 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.getfast.R
 import com.example.getfast.model.Listing
+import com.example.getfast.utils.ListingDateUtils
 
 @Composable
 fun ListingList(
@@ -136,14 +141,24 @@ fun ListingCard(
                     }
                 }
             }
+            val isNew = ListingDateUtils.isRecent(listing.date)
             Text(
-                text = "${listing.date} • ${listing.district}, ${listing.city}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = listing.price,
+                text = buildAnnotatedString {
+                    append(listing.date)
+                    if (isNew) {
+                        append(" ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
+                            append("NEU")
+                        }
+                    }
+                    append(" • ${listing.district}, ${listing.city} • ")
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                        append(listing.price)
+                    }
+                },
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = listing.summary,
