@@ -19,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -97,6 +98,7 @@ fun ListingList(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListingCard(
     listing: Listing,
