@@ -46,8 +46,8 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    // Use version provided by the Compose BOM for pull refresh APIs
-    implementation("androidx.compose.material:pullrefresh")
+    // Material library is required for pull-to-refresh APIs and icons
+    implementation("androidx.compose.material:material")
     implementation("com.google.android.material:material:1.11.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
