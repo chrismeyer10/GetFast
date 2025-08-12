@@ -28,6 +28,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.4
+      - name: Cache Gradle files
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Build
-        run: gradle build
+        run: gradle build --parallel
