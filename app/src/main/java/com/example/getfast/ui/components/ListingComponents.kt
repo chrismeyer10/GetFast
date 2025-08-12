@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -66,11 +64,12 @@ fun ListingList(
         listings
     }
 
-    val pullRefreshState = rememberPullRefreshState(isRefreshing, onRefresh)
-    Box(
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = onRefresh,
         modifier = modifier
             .fillMaxSize()
-            .pullRefresh(pullRefreshState)
             .padding(16.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f))
     ) {
@@ -83,11 +82,6 @@ fun ListingList(
                 ) { selectedListing = listing }
             }
         }
-        PullRefreshIndicator(
-            refreshing = isRefreshing,
-            state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
     }
 
     selectedListing?.let { listing ->
