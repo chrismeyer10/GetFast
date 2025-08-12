@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,13 +36,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val notifier = Notifier(this)
-        @OptIn(ExperimentalMaterial3Api::class)
         setContent {
             MaterialTheme {
                 val listings by viewModel.listings.collectAsState()
                 val lastFetch by viewModel.lastFetchTime.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
-                val isRefreshing by viewModel.isRefreshing.collectAsState()
                 var showFavoritesOnly by remember { mutableStateOf(false) }
                 val seenIds = remember { mutableSetOf<String>() }
                 LaunchedEffect(listings) {
@@ -95,8 +92,6 @@ class MainActivity : ComponentActivity() {
                         favorites = favorites,
                         favoritesOnly = showFavoritesOnly,
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
-                        onRefresh = { viewModel.refreshListings() },
-                        isRefreshing = isRefreshing,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
