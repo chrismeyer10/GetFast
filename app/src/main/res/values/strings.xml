@@ -9,5 +9,7 @@
     <string name="open_in_app">In App öffnen</string>
     <string name="open_in_browser">Im Browser öffnen</string>
     <string name="open_listing">Anzeige öffnen</string>
+    <string name="offers_tab">Angebote</string>
+    <string name="search_tab">Suche</string>
     <string name="copyright">\u00A9 2024 Christian Meyer</string>
 </resources>

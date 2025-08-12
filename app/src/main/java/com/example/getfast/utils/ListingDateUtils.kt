@@ -27,7 +27,8 @@ object ListingDateUtils {
                     dateTimeFormatter.parse("$today $timePart")
                 }
                 dateString.startsWith("Vor") -> {
-                    val minutes = Regex("Vor\\s+(\\d+)\\s+Min").find(dateString)?.groupValues?.get(1)?.toIntOrNull()
+                    val minutes = Regex("Vor\\s+(\\d+)\\s+Min(?:\\.|uten)?", RegexOption.IGNORE_CASE)
+                        .find(dateString)?.groupValues?.get(1)?.toIntOrNull()
                     minutes?.let { Date(now.time - it * 60 * 1000) }
                 }
                 dateString.startsWith("Gerade") -> now
