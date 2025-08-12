@@ -4,11 +4,22 @@ Android app using MVVM architecture to monitor eBay Kleinanzeigen for new housin
 
 ## Build & Run
 
-The project is built with Gradle. To build and install the debug APK on a connected device or emulator, run:
+The project is built with Gradle. On Windows, build the debug APK with:
 
-```bash
-scripts/run.sh
+```
+gradle assembleDebug
 ```
 
-The script will use the Gradle wrapper if available, or fall back to the system Gradle installation. Make sure the Android SDK is installed and that `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) points to its location.
+If the build fails with `SDK location not found`, define the Android SDK path:
 
+```
+setx ANDROID_SDK_ROOT "C:\Users\<you>\AppData\Local\Android\Sdk"
+```
+
+After setting the variable, you can optionally run the helper script to generate `local.properties`:
+
+```
+scripts\setup-sdk.ps1
+```
+
+The PowerShell script only writes the `local.properties` file so Gradle can locate the SDK.
