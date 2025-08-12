@@ -38,6 +38,9 @@ class EbayRepository(
         val price = element.selectFirst(".aditem-main--middle--price-shipping")?.text()?.trim() ?: ""
         val description = element.selectFirst(".aditem-main--middle--description")?.text()?.trim() ?: ""
         val summary = generateSummary(description)
+        val isSearch = listOf(title, description).any {
+            it.contains("suche", ignoreCase = true) || it.contains("gesuch", ignoreCase = true)
+        }
         return Listing(
             id = id,
             title = title,
@@ -46,7 +49,8 @@ class EbayRepository(
             district = district,
             city = city,
             price = price,
-            summary = summary
+            summary = summary,
+            isSearch = isSearch,
         )
     }
 

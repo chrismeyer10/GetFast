@@ -8,5 +8,6 @@ data class Listing(
     val district: String,
     val city: String,
     val price: String,
-    val summary: String
+    val summary: String,
+    val isSearch: Boolean = false,
 )
