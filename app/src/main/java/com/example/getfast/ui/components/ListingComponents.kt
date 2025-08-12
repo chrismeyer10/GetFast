@@ -3,6 +3,7 @@ package com.example.getfast.ui.components
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,9 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.pullrefresh.PullRefreshIndicator
+import androidx.compose.material3.pullrefresh.pullRefresh
+import androidx.compose.material3.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -44,7 +45,7 @@ import com.example.getfast.R
 import com.example.getfast.model.Listing
 import com.example.getfast.utils.ListingDateUtils
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListingList(
     listings: List<Listing>,
@@ -64,14 +65,13 @@ fun ListingList(
         listings
     }
 
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
-    SwipeRefresh(
-        state = swipeRefreshState,
-        onRefresh = onRefresh,
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, onRefresh)
+    Box(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f))
+            .pullRefresh(pullRefreshState)
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(shownListings) { listing ->
@@ -82,6 +82,11 @@ fun ListingList(
                 ) { selectedListing = listing }
             }
         }
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 
     selectedListing?.let { listing ->
