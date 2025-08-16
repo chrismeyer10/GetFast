@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -75,6 +76,7 @@ class MainActivity : ComponentActivity() {
                 val lastFetch by viewModel.lastFetchTime.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
                 val filter by viewModel.filter.collectAsState()
+                val isRefreshing by viewModel.isRefreshing.collectAsState()
                 var showFavoritesOnly by remember { mutableStateOf(false) }
                 var currentTab by remember { mutableStateOf(ListingTab.OFFERS) }
                 var showSettings by remember { mutableStateOf(false) }
@@ -119,6 +121,18 @@ class MainActivity : ComponentActivity() {
                                     ),
                                 ),
                             ),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(onClick = { viewModel.refreshListings() }) {
+                            Text(text = stringResource(id = R.string.refresh))
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Row(
                             modifier = Modifier
@@ -135,12 +149,53 @@ class MainActivity : ComponentActivity() {
                                     lastFetch ?: "--",
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
+                            OutlinedTextField(
+                                value = selectedCity.displayName,
+                                onValueChange = {},
+                                label = { Text(text = stringResource(id = R.string.city_label)) },
+                                readOnly = true,
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                singleLine = true,
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             TextButton(onClick = { viewModel.refreshListings() }) {
                                 Text(text = stringResource(id = R.string.refresh))
                             }
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        OutlinedTextField(
+                            value = priceText,
+                            onValueChange = { priceText = it.filter { ch -> ch.isDigit() } },
+                            label = { Text(text = stringResource(id = R.string.max_price_label)) },
+                            singleLine = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            onClick = {
+                                viewModel.updateFilter(
+                                    SearchFilter(
+                                        city = selectedCity,
+                                        maxPrice = priceText.toIntOrNull(),
+                                    ),
+                                )
+                            },
+                        ) {
+                            Text(text = stringResource(id = R.string.apply_filters))
+                        }
+                    }
+
                     TabRow(selectedTabIndex = currentTab.ordinal) {
                         Tab(
                             selected = currentTab == ListingTab.OFFERS,
@@ -183,6 +238,8 @@ class MainActivity : ComponentActivity() {
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
                         highlightedIds = highlightedIds,
                         blinkingIds = blinkingIds.value,
+                        isRefreshing = isRefreshing,
+                        onRefresh = { viewModel.refreshListings() },
                         modifier = Modifier.weight(1f),
                     )
                     Text(
