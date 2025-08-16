@@ -33,4 +33,5 @@
     <string name="open_archive">Archiv anzeigen</string>
     <string name="reset_app">App zurücksetzen</string>
     <string name="archive_title">Archiv</string>
+    <string name="no_listings_found">Keine Anzeige gefunden</string>
 </resources>

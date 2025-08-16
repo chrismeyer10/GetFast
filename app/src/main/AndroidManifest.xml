@@ -16,5 +16,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.ImmoscoutActivity" />
+        <activity android:name=".ui.KleinanzeigenActivity" />
+        <activity android:name=".ui.ImmonetActivity" />
+        <activity android:name=".ui.ImmoweltActivity" />
+        <activity android:name=".ui.WohnungsboerseActivity" />
     </application>
 </manifest>

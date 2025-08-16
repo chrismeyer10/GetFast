@@ -112,44 +112,51 @@ fun ListingList(
                 ),
             )
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
-            items(items = shownListings, key = { it.id }) { listing ->
-                val dismissState = rememberDismissState(
-                    confirmStateChange = { value ->
-                        if (value == DismissValue.DismissedToEnd) {
-                            onArchive(listing)
-                            true
-                        } else {
-                            false
+        if (shownListings.isEmpty() && !isRefreshing) {
+            Text(
+                text = stringResource(id = R.string.no_listings_found),
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+            ) {
+                items(items = shownListings, key = { it.id }) { listing ->
+                    val dismissState = rememberDismissState(
+                        confirmStateChange = { value ->
+                            if (value == DismissValue.DismissedToEnd) {
+                                onArchive(listing)
+                                true
+                            } else {
+                                false
+                            }
                         }
-                    }
-                )
-                SwipeToDismiss(
-                    state = dismissState,
-                    background = {},
-                    dismissContent = {
-                        val isKlein = remember(listing.url) { listing.url.contains("kleinanzeigen", ignoreCase = true) }
-                        val cardColor = if (isKlein) {
-                            Color(0xFFE8F5E9)
-                        } else {
-                            Color(0xFFE3F2FD)
-                        }
-                        ListingCard(
-                            listing = listing,
-                            isFavorite = favorites.contains(listing.id),
-                            onToggleFavorite = onToggleFavorite,
-                            highlighted = highlightedIds.contains(listing.id),
-                            blink = blinkingIds.contains(listing.id),
-                            onClick = { selectedListing = listing },
-                            cardColor = cardColor,
-                        )
-                    },
-                    directions = setOf(DismissDirection.StartToEnd),
-                )
+                    )
+                    SwipeToDismiss(
+                        state = dismissState,
+                        background = {},
+                        dismissContent = {
+                            val isKlein = remember(listing.url) { listing.url.contains("kleinanzeigen", ignoreCase = true) }
+                            val cardColor = if (isKlein) {
+                                Color(0xFFE8F5E9)
+                            } else {
+                                Color(0xFFE3F2FD)
+                            }
+                            ListingCard(
+                                listing = listing,
+                                isFavorite = favorites.contains(listing.id),
+                                onToggleFavorite = onToggleFavorite,
+                                highlighted = highlightedIds.contains(listing.id),
+                                blink = blinkingIds.contains(listing.id),
+                                onClick = { selectedListing = listing },
+                                cardColor = cardColor,
+                            )
+                        },
+                        directions = setOf(DismissDirection.StartToEnd),
+                    )
+                }
             }
         }
 
