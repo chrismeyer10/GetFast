@@ -31,6 +31,7 @@ class ListingViewModel(
         viewModelScope.launch {
             _isRefreshing.value = true
             _listings.value = repository.fetchLatestListings()
+                .sortedByDescending { it.id.toLongOrNull() ?: Long.MIN_VALUE }
             _lastFetchTime.value = formatter.format(Date())
             _isRefreshing.value = false
         }

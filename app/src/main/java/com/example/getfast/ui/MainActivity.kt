@@ -1,5 +1,8 @@
 package com.example.getfast.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,6 +36,10 @@ import com.example.getfast.notifications.Notifier
 import com.example.getfast.ui.components.ListingList
 import com.example.getfast.ui.theme.GetFastTheme
 import com.example.getfast.viewmodel.ListingViewModel
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -41,6 +48,16 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (
+            Build.VERSION.SDK_INT >= 33 &&
+            !NotificationManagerCompat.from(this).areNotificationsEnabled()
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                0,
+            )
+        }
         val notifier = Notifier(this)
         setContent {
             GetFastTheme {
@@ -50,14 +67,23 @@ class MainActivity : ComponentActivity() {
                 var showFavoritesOnly by remember { mutableStateOf(false) }
                 var currentTab by remember { mutableStateOf(ListingTab.OFFERS) }
                 val seenIds = remember { mutableSetOf<String>() }
+                val blinkingIds = remember { mutableStateOf<Set<String>>(emptySet()) }
                 LaunchedEffect(listings) {
                     val newItems = listings.filter { it.id !in seenIds }
-                    newItems.forEach { notifier.notifyNewListing(it.title) }
+                    newItems.forEach { listing ->
+                        notifier.notifyNewListing(listing.title)
+                        blinkingIds.value = blinkingIds.value + listing.id
+                        launch {
+                            delay(10_000)
+                            blinkingIds.value = blinkingIds.value - listing.id
+                        }
+                    }
                     seenIds.addAll(newItems.map { it.id })
                 }
                 val tabFiltered = listings.filter {
                     if (currentTab == ListingTab.SEARCH) it.isSearch else !it.isSearch
                 }
+                val highlightedIds = tabFiltered.take(2).map { it.id }.toSet()
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -121,6 +147,8 @@ class MainActivity : ComponentActivity() {
                         favorites = favorites,
                         favoritesOnly = showFavoritesOnly,
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
+                        highlightedIds = highlightedIds,
+                        blinkingIds = blinkingIds.value,
                         modifier = Modifier.weight(1f),
                     )
                     Text(
