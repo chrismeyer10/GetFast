@@ -2,6 +2,7 @@ package com.example.getfast.ui.components
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.animateColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateColor
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
