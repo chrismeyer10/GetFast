@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -41,9 +40,7 @@ import com.example.getfast.model.SearchFilter
 @Composable
 fun SettingsScreen(
     filter: SearchFilter,
-    darkMode: Boolean,
     onApply: (SearchFilter) -> Unit,
-    onDarkModeChange: (Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
     var selectedCity by remember { mutableStateOf(filter.city) }
@@ -117,12 +114,6 @@ fun SettingsScreen(
                 },
                 label = { Text(text = stringResource(id = R.string.source_immoscout)) }
             )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(text = stringResource(id = R.string.dark_mode))
-            Spacer(modifier = Modifier.weight(1f))
-            Switch(checked = darkMode, onCheckedChange = onDarkModeChange)
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(

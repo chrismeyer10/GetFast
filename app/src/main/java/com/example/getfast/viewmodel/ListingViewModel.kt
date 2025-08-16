@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
@@ -34,7 +33,6 @@ class ListingViewModel(
     private val dataStore = application.dataStore
     private val favoritesKey = stringSetPreferencesKey("favorites")
     private val archivedKey = stringSetPreferencesKey("archived")
-    private val darkModeKey = booleanPreferencesKey("dark_mode")
 
     private val _listings = MutableStateFlow<List<Listing>>(emptyList())
     val listings: StateFlow<List<Listing>> = _listings
@@ -52,8 +50,6 @@ class ListingViewModel(
     private val _archived = MutableStateFlow<Set<String>>(emptySet())
     val archived: StateFlow<Set<String>> = _archived
 
-    private val _darkMode = MutableStateFlow(false)
-    val darkMode: StateFlow<Boolean> = _darkMode
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
@@ -63,7 +59,6 @@ class ListingViewModel(
             val prefs = dataStore.data.first()
             _favorites.value = prefs[favoritesKey] ?: emptySet()
             _archived.value = prefs[archivedKey] ?: emptySet()
-            _darkMode.value = prefs[darkModeKey] ?: false
         }
     }
 
@@ -103,12 +98,6 @@ class ListingViewModel(
         }
     }
 
-    fun setDarkMode(enabled: Boolean) {
-        _darkMode.value = enabled
-        viewModelScope.launch {
-            dataStore.edit { it[darkModeKey] = enabled }
-        }
-    }
 
     /**
      * Markiert ein Listing als archiviert und speichert den Zustand.
