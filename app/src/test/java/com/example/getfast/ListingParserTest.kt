@@ -37,6 +37,42 @@ class ListingParserTest {
         </body></html>
     """.trimIndent()
 
+    private val immonetHtml = """
+        <html><body>
+        <article class='immonet-entry' data-id='20'>
+          <a href='/expose/20' class='immonet-link'>Net 1</a>
+          <div class='immonet-price'>300 €</div>
+          <div class='immonet-address'>Bezirk, Stadt</div>
+          <div class='immonet-desc'>Beschreibung.</div>
+          <img src='img.jpg'/>
+        </article>
+        </body></html>
+    """.trimIndent()
+
+    private val immoweltHtml = """
+        <html><body>
+        <article class='immowelt-entry' data-id='30'>
+          <a href='/expose/30' class='immowelt-link'>Welt 1</a>
+          <div class='immowelt-price'>400 €</div>
+          <div class='immowelt-address'>Bezirk, Stadt</div>
+          <div class='immowelt-desc'>Beschreibung.</div>
+          <img src='img.jpg'/>
+        </article>
+        </body></html>
+    """.trimIndent()
+
+    private val wohnungsboerseHtml = """
+        <html><body>
+        <article class='wohnungsboerse-entry' data-id='40'>
+          <a href='/expose/40' class='wohnungsboerse-link'>Boerse 1</a>
+          <div class='wohnungsboerse-price'>500 €</div>
+          <div class='wohnungsboerse-address'>Bezirk, Stadt</div>
+          <div class='wohnungsboerse-desc'>Beschreibung.</div>
+          <img src='img.jpg'/>
+        </article>
+        </body></html>
+    """.trimIndent()
+
     @Test
     fun parse_returnsAllListings() {
         val parser = ListingParser()
@@ -53,5 +89,32 @@ class ListingParserTest {
         val listings = parser.parseImmoscout(doc)
         assertEquals(1, listings.size)
         assertEquals("Immo 1", listings[0].title)
+    }
+
+    @Test
+    fun parseImmonet_returnsListings() {
+        val parser = ListingParser()
+        val doc = Jsoup.parse(immonetHtml)
+        val listings = parser.parseImmonet(doc)
+        assertEquals(1, listings.size)
+        assertEquals("Net 1", listings[0].title)
+    }
+
+    @Test
+    fun parseImmowelt_returnsListings() {
+        val parser = ListingParser()
+        val doc = Jsoup.parse(immoweltHtml)
+        val listings = parser.parseImmowelt(doc)
+        assertEquals(1, listings.size)
+        assertEquals("Welt 1", listings[0].title)
+    }
+
+    @Test
+    fun parseWohnungsboerse_returnsListings() {
+        val parser = ListingParser()
+        val doc = Jsoup.parse(wohnungsboerseHtml)
+        val listings = parser.parseWohnungsboerse(doc)
+        assertEquals(1, listings.size)
+        assertEquals("Boerse 1", listings[0].title)
     }
 }

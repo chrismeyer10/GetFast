@@ -29,4 +29,7 @@ enum class City(val displayName: String, val urlPath: String) {
 enum class ListingSource {
     KLEINANZEIGEN,
     IMMOSCOUT,
+    IMMONET,
+    IMMOWELT,
+    WOHNUNGSBOERSE,
 }

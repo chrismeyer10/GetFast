@@ -24,6 +24,9 @@
     <string name="back">Zurück</string>
     <string name="source_kleinanzeigen">Kleinanzeigen</string>
     <string name="source_immoscout">ImmoScout</string>
+    <string name="source_immonet">Immonet</string>
+    <string name="source_immowelt">Immowelt</string>
+    <string name="source_wohnungsboerse">Wohnungsboerse.net</string>
     <string name="expand_card">Anzeige vergrößern</string>
     <string name="collapse_card">Anzeige verkleinern</string>
 </resources>
