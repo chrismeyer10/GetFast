@@ -23,8 +23,9 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 class ListingViewModel(
     application: Application,
-    private val repository: EbayRepository = EbayRepository(),
 ) : AndroidViewModel(application) {
+
+    private val repository = EbayRepository()
 
     private val dataStore = application.dataStore
     private val favoritesKey = stringSetPreferencesKey("favorites")
