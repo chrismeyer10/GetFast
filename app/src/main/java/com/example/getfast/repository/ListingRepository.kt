@@ -49,7 +49,12 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmoscout(filter: SearchFilter): List<Listing> {
-        // TODO: Implement real fetch and parsing for Immoscout
-        return emptyList()
+        val url = "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=${filter.city.displayName}"
+        return try {
+            val doc = fetcher.fetch(url)
+            parser.parseImmoscout(doc)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }
