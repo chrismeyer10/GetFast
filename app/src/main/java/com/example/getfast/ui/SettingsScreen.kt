@@ -43,6 +43,8 @@ fun SettingsScreen(
     filter: SearchFilter,
     onApply: (SearchFilter) -> Unit,
     onBack: () -> Unit,
+    onOpenArchive: () -> Unit,
+    onReset: () -> Unit,
 ) {
     var selectedCity by remember { mutableStateOf(filter.city) }
     var priceText by remember { mutableStateOf(filter.maxPrice?.toString() ?: "") }
@@ -165,9 +167,18 @@ fun SettingsScreen(
                     )
                 )
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(text = stringResource(id = R.string.apply_filters))
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onOpenArchive, modifier = Modifier.fillMaxWidth()) {
+            Text(text = stringResource(id = R.string.open_archive))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
+            Text(text = stringResource(id = R.string.reset_app))
+        }
     }
 }
+

@@ -8,9 +8,10 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -117,14 +118,37 @@ fun ListingList(
                 .padding(16.dp),
         ) {
             items(items = shownListings, key = { it.id }) { listing ->
-                ListingCard(
-                    listing = listing,
-                    isFavorite = favorites.contains(listing.id),
-                    onToggleFavorite = onToggleFavorite,
-                    highlighted = highlightedIds.contains(listing.id),
-                    blink = blinkingIds.contains(listing.id),
-                    onClick = { selectedListing = listing },
-                    onArchive = { onArchive(listing) },
+                val dismissState = rememberDismissState(
+                    confirmStateChange = { value ->
+                        if (value == DismissValue.DismissedToEnd) {
+                            onArchive(listing)
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                )
+                SwipeToDismiss(
+                    state = dismissState,
+                    background = {},
+                    dismissContent = {
+                        val isKlein = remember(listing.url) { listing.url.contains("kleinanzeigen", ignoreCase = true) }
+                        val cardColor = if (isKlein) {
+                            Color(0xFFE8F5E9)
+                        } else {
+                            Color(0xFFE3F2FD)
+                        }
+                        ListingCard(
+                            listing = listing,
+                            isFavorite = favorites.contains(listing.id),
+                            onToggleFavorite = onToggleFavorite,
+                            highlighted = highlightedIds.contains(listing.id),
+                            blink = blinkingIds.contains(listing.id),
+                            onClick = { selectedListing = listing },
+                            cardColor = cardColor,
+                        )
+                    },
+                    directions = setOf(DismissDirection.StartToEnd),
                 )
             }
         }
@@ -177,7 +201,7 @@ fun ListingCard(
     highlighted: Boolean,
     blink: Boolean,
     onClick: () -> Unit,
-    onArchive: (Listing) -> Unit,
+    cardColor: Color,
 ) {
     val baseColor = if (highlighted) MaterialTheme.colorScheme.error else Color.Transparent
     val borderColor by if (blink) {
@@ -195,26 +219,13 @@ fun ListingCard(
         rememberUpdatedState(baseColor)
     }
     var expanded by remember { mutableStateOf(false) }
-    var dragAmount by remember { mutableStateOf(0f) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
-            .draggable(
-                orientation = Orientation.Horizontal,
-                state = rememberDraggableState { delta ->
-                    dragAmount += delta
-                    if (dragAmount > 100 || dragAmount < -100) {
-                        onArchive(listing)
-                        dragAmount = 0f
-                    }
-                },
-                onDragStopped = { dragAmount = 0f },
-                enabled = !expanded,
-            )
             .clickable(onClick = onClick)
             .animateContentSize(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
         border = BorderStroke(2.dp, borderColor),
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
