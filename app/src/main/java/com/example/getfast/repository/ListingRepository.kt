@@ -55,7 +55,8 @@ class ListingRepository(
     }
 
     private suspend fun fetchKleinanzeigen(filter: SearchFilter): List<Listing> {
-        val url = "https://www.kleinanzeigen.de/s-wohnung-mieten/${filter.city.urlPath}"
+        val path = filter.city.pathFor(ListingSource.KLEINANZEIGEN)
+        val url = "https://www.kleinanzeigen.de/s-wohnung-mieten/$path"
         return try {
             val doc = fetcher.fetch(url)
             parser.parse(doc)
@@ -65,7 +66,8 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmoscout(filter: SearchFilter): List<Listing> {
-        val url = "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=${filter.city.displayName}"
+        val city = filter.city.pathFor(ListingSource.IMMOSCOUT)
+        val url = "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=$city"
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmoscout(doc)
@@ -75,7 +77,8 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmonet(filter: SearchFilter): List<Listing> {
-        val url = "https://www.immonet.de/${filter.city.displayName}"
+        val city = filter.city.pathFor(ListingSource.IMMONET)
+        val url = "https://www.immonet.de/$city"
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmonet(doc)
@@ -85,7 +88,8 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmowelt(filter: SearchFilter): List<Listing> {
-        val url = "https://www.immowelt.de/${filter.city.displayName}"
+        val city = filter.city.pathFor(ListingSource.IMMOWELT)
+        val url = "https://www.immowelt.de/$city"
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmowelt(doc)
@@ -95,7 +99,8 @@ class ListingRepository(
     }
 
     private suspend fun fetchWohnungsboerse(filter: SearchFilter): List<Listing> {
-        val url = "https://www.wohnungsboerse.net/${filter.city.displayName}"
+        val city = filter.city.pathFor(ListingSource.WOHNUNGSBOERSE)
+        val url = "https://www.wohnungsboerse.net/$city"
         return try {
             val doc = fetcher.fetch(url)
             parser.parseWohnungsboerse(doc)
