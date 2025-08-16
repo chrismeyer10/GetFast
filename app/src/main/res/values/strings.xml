@@ -30,4 +30,7 @@
     <string name="source_wohnungsboerse">Wohnungsboerse.net</string>
     <string name="expand_card">Anzeige vergrößern</string>
     <string name="collapse_card">Anzeige verkleinern</string>
+    <string name="open_archive">Archiv anzeigen</string>
+    <string name="reset_app">App zurücksetzen</string>
+    <string name="archive_title">Archiv</string>
 </resources>

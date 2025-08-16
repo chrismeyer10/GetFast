@@ -80,6 +80,7 @@ class MainActivity : ComponentActivity() {
                 var showFavoritesOnly by remember { mutableStateOf(false) }
                 var currentTab by remember { mutableStateOf(ListingTab.OFFERS) }
                 var showSettings by remember { mutableStateOf(false) }
+                var showArchive by remember { mutableStateOf(false) }
                 val seenIds = remember { mutableSetOf<String>() }
                 val blinkingIds = remember { mutableStateOf<Set<String>>(emptySet()) }
                 LaunchedEffect(listings) {
@@ -98,7 +99,15 @@ class MainActivity : ComponentActivity() {
                     .filter { it.id !in archived }
                     .filter { if (currentTab == ListingTab.SEARCH) it.isSearch else !it.isSearch }
                 val highlightedIds = tabFiltered.take(2).map { it.id }.toSet()
-                if (showSettings) {
+                if (showArchive) {
+                    val archivedListings = listings.filter { archived.contains(it.id) }
+                    ArchiveScreen(
+                        listings = archivedListings,
+                        favorites = favorites,
+                        onToggleFavorite = { viewModel.toggleFavorite(it) },
+                        onBack = { showArchive = false }
+                    )
+                } else if (showSettings) {
                     SettingsScreen(
                         filter = filter,
                         onApply = {
@@ -106,6 +115,11 @@ class MainActivity : ComponentActivity() {
                             showSettings = false
                         },
                         onBack = { showSettings = false },
+                        onOpenArchive = { showArchive = true },
+                        onReset = {
+                            viewModel.resetApp()
+                            showSettings = false
+                        }
                     )
                 } else {
                     Column(

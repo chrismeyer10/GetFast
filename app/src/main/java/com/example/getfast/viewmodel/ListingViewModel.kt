@@ -119,4 +119,20 @@ class ListingViewModel(
             dataStore.edit { it[favoritesKey] = emptySet() }
         }
     }
+
+    /**
+     * Setzt Favoriten, Archiv und Filter zurück.
+     */
+    fun resetApp() {
+        _favorites.value = emptySet()
+        _archived.value = emptySet()
+        _filter.value = SearchFilter()
+        viewModelScope.launch {
+            dataStore.edit {
+                it[favoritesKey] = emptySet()
+                it[archivedKey] = emptySet()
+            }
+        }
+        refreshListings()
+    }
 }
