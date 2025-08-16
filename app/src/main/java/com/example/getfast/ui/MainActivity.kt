@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.getfast.R
@@ -129,6 +130,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         FilterChip(
                             selected = !showFavoritesOnly,
@@ -136,6 +138,11 @@ class MainActivity : ComponentActivity() {
                             label = { Text(text = stringResource(id = R.string.all_tab)) },
                         )
                         Spacer(modifier = Modifier.weight(1f))
+                        if (showFavoritesOnly && favorites.isNotEmpty()) {
+                            TextButton(onClick = { viewModel.clearFavorites() }) {
+                                Text(text = stringResource(id = R.string.clear_favorites))
+                            }
+                        }
                         FilterChip(
                             selected = showFavoritesOnly,
                             onClick = { showFavoritesOnly = true },
