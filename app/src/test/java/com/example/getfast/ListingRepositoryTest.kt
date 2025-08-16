@@ -78,6 +78,25 @@ class ListingRepositoryTest {
         </body></html>
     """.trimIndent()
 
+    private val oldHtml = """
+        <html><body>
+        <article class='aditem' data-adid='1'>
+          <a href='/ad1' class='ellipsis'>Titel 1</a>
+          <div class='aditem-main--top--right'>Heute, 10:00</div>
+          <div class='aditem-main--top--left'>Bezirk, Stadt</div>
+          <div class='aditem-main--middle--price-shipping'>100 €</div>
+          <div class='aditem-main--middle--description'>Beschreibung eins.</div>
+        </article>
+        <article class='aditem' data-adid='2'>
+          <a href='/ad2' class='ellipsis'>Titel 2</a>
+          <div class='aditem-main--top--right'>01.01.2000</div>
+          <div class='aditem-main--top--left'>Bezirk, Stadt</div>
+          <div class='aditem-main--middle--price-shipping'>50 €</div>
+          <div class='aditem-main--middle--description'>Beschreibung zwei.</div>
+        </article>
+        </body></html>
+    """.trimIndent()
+
     @Test
     fun fetchLatestListings_filtersByMaxPrice() = runBlocking {
         val repo = ListingRepository(fetcher = FakeFetcher(html))
@@ -120,5 +139,14 @@ class ListingRepositoryTest {
         val listings = repo.fetchLatestListings(filter)
         assertEquals(1, listings.size)
         assertEquals("Boerse 1", listings[0].title)
+    }
+
+    @Test
+    fun fetchLatestListings_filtersByMaxAge() = runBlocking {
+        val repo = ListingRepository(fetcher = FakeFetcher(oldHtml))
+        val filter = SearchFilter(maxAgeDays = 3)
+        val listings = repo.fetchLatestListings(filter)
+        assertEquals(1, listings.size)
+        assertEquals("1", listings[0].id)
     }
 }
