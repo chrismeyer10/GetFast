@@ -3,11 +3,16 @@ package com.example.getfast.ui.components
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateColor
-import androidx.compose.foundation.background
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -51,7 +56,6 @@ import coil.compose.AsyncImage
 import com.example.getfast.R
 import com.example.getfast.model.Listing
 import com.example.getfast.utils.ListingDateUtils
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.delay
 
@@ -152,22 +156,30 @@ fun ListingCard(
     } else {
         rememberUpdatedState(baseColor)
     }
+    var expanded by remember { mutableStateOf(false) }
+    var currentImageIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(expanded) {
+        while (expanded && listing.imageUrls.isNotEmpty()) {
+            delay(3000)
+            currentImageIndex = (currentImageIndex + 1) % listing.imageUrls.size
+        }
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable(onClick = onClick),
+            .draggable(
+                orientation = Orientation.Vertical,
+                state = rememberDraggableState { delta ->
+                    if (delta > 20) expanded = true
+                    if (delta < -20) expanded = false
+                },
+            )
+            .clickable(onClick = onClick)
+            .animateContentSize(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         border = BorderStroke(2.dp, borderColor),
     ) {
-        var showImages by remember { mutableStateOf(false) }
-        var currentImageIndex by remember { mutableStateOf(0) }
-        LaunchedEffect(showImages) {
-            while (showImages && listing.imageUrls.isNotEmpty()) {
-                delay(3000)
-                currentImageIndex = (currentImageIndex + 1) % listing.imageUrls.size
-            }
-        }
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -176,12 +188,6 @@ fun ListingCard(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
-                TextButton(onClick = {
-                    showImages = !showImages
-                    currentImageIndex = 0
-                }) {
-                    Text(text = if (showImages) stringResource(id = R.string.show_text) else stringResource(id = R.string.show_images))
-                }
                 IconToggleButton(checked = isFavorite, onCheckedChange = { onToggleFavorite(listing) }) {
                     if (isFavorite) {
                         Icon(
@@ -197,7 +203,7 @@ fun ListingCard(
                     }
                 }
             }
-            if (showImages && listing.imageUrls.isNotEmpty()) {
+            if (expanded && listing.imageUrls.isNotEmpty()) {
                 AsyncImage(
                     model = listing.imageUrls[currentImageIndex],
                     contentDescription = null,
@@ -206,26 +212,27 @@ fun ListingCard(
                         .aspectRatio(1.5f),
                     contentScale = ContentScale.Crop
                 )
-            } else {
-                val isNew = ListingDateUtils.isRecent(listing.date)
-                Text(
-                    text = buildAnnotatedString {
-                        append(listing.date)
-                        if (isNew) {
-                            append(" ")
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
-                                append("NEU")
-                            }
+            }
+            val isNew = ListingDateUtils.isRecent(listing.date)
+            Text(
+                text = buildAnnotatedString {
+                    append(listing.date)
+                    if (isNew) {
+                        append(" ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
+                            append("NEU")
                         }
-                        append(" • ${listing.district}, ${listing.city} • ")
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
-                            append(listing.price)
-                        }
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                    }
+                    append(" • ${listing.district}, ${listing.city} • ")
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                        append(listing.price)
+                    }
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (expanded) {
                 Text(
                     text = listing.summary,
                     modifier = Modifier.padding(top = 8.dp),
