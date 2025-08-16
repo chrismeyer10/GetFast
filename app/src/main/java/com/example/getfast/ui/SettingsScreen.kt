@@ -115,6 +115,35 @@ fun SettingsScreen(
                 },
                 label = { Text(text = stringResource(id = R.string.source_immoscout)) }
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            FilterChip(
+                selected = ListingSource.IMMONET in sources,
+                onClick = {
+                    if (ListingSource.IMMONET in sources) sources.remove(ListingSource.IMMONET)
+                    else sources.add(ListingSource.IMMONET)
+                },
+                label = { Text(text = stringResource(id = R.string.source_immonet)) }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            FilterChip(
+                selected = ListingSource.IMMOWELT in sources,
+                onClick = {
+                    if (ListingSource.IMMOWELT in sources) sources.remove(ListingSource.IMMOWELT)
+                    else sources.add(ListingSource.IMMOWELT)
+                },
+                label = { Text(text = stringResource(id = R.string.source_immowelt)) }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            FilterChip(
+                selected = ListingSource.WOHNUNGSBOERSE in sources,
+                onClick = {
+                    if (ListingSource.WOHNUNGSBOERSE in sources) sources.remove(ListingSource.WOHNUNGSBOERSE)
+                    else sources.add(ListingSource.WOHNUNGSBOERSE)
+                },
+                label = { Text(text = stringResource(id = R.string.source_wohnungsboerse)) }
+            )
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(

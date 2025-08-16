@@ -26,6 +26,15 @@ class ListingRepository(
         if (ListingSource.IMMOSCOUT in filter.sources) {
             results += fetchImmoscout(filter)
         }
+        if (ListingSource.IMMONET in filter.sources) {
+            results += fetchImmonet(filter)
+        }
+        if (ListingSource.IMMOWELT in filter.sources) {
+            results += fetchImmowelt(filter)
+        }
+        if (ListingSource.WOHNUNGSBOERSE in filter.sources) {
+            results += fetchWohnungsboerse(filter)
+        }
         val maxPrice = filter.maxPrice
         return if (maxPrice != null) {
             results.filter { listing ->
@@ -53,6 +62,36 @@ class ListingRepository(
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmoscout(doc)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private suspend fun fetchImmonet(filter: SearchFilter): List<Listing> {
+        val url = "https://www.immonet.de/${filter.city.displayName}"
+        return try {
+            val doc = fetcher.fetch(url)
+            parser.parseImmonet(doc)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private suspend fun fetchImmowelt(filter: SearchFilter): List<Listing> {
+        val url = "https://www.immowelt.de/${filter.city.displayName}"
+        return try {
+            val doc = fetcher.fetch(url)
+            parser.parseImmowelt(doc)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private suspend fun fetchWohnungsboerse(filter: SearchFilter): List<Listing> {
+        val url = "https://www.wohnungsboerse.net/${filter.city.displayName}"
+        return try {
+            val doc = fetcher.fetch(url)
+            parser.parseWohnungsboerse(doc)
         } catch (e: Exception) {
             emptyList()
         }

@@ -53,6 +53,111 @@ class ListingParser {
     }
 
     /**
+     * Parst ein Immonet-Dokument in Listings.
+     */
+    fun parseImmonet(document: Document): List<Listing> {
+        return document.select("article.immonet-entry").mapNotNull { element ->
+            val id = element.attr("data-id")
+            val link = element.selectFirst("a.immonet-link")
+            val href = link?.attr("href")
+            val title = link?.text()
+            if (id.isBlank() || href == null || title.isNullOrBlank()) {
+                return@mapNotNull null
+            }
+            val price = element.selectFirst(".immonet-price")?.text()?.trim() ?: ""
+            val address = element.selectFirst(".immonet-address")?.text()?.trim() ?: ""
+            val parts = address.split(",")
+            val district = parts.getOrNull(0)?.trim() ?: ""
+            val city = parts.getOrNull(1)?.trim() ?: ""
+            val summary = element.selectFirst(".immonet-desc")?.text()?.trim() ?: ""
+            val image = element.selectFirst("img")?.attr("src")
+            val images = if (image.isNullOrBlank()) emptyList() else listOf(image)
+            Listing(
+                id = id,
+                title = title,
+                url = "https://www.immonet.de$href",
+                date = "",
+                district = district,
+                city = city,
+                price = price,
+                summary = summary,
+                imageUrls = images,
+                isSearch = false,
+            )
+        }
+    }
+
+    /**
+     * Parst ein Immowelt-Dokument in Listings.
+     */
+    fun parseImmowelt(document: Document): List<Listing> {
+        return document.select("article.immowelt-entry").mapNotNull { element ->
+            val id = element.attr("data-id")
+            val link = element.selectFirst("a.immowelt-link")
+            val href = link?.attr("href")
+            val title = link?.text()
+            if (id.isBlank() || href == null || title.isNullOrBlank()) {
+                return@mapNotNull null
+            }
+            val price = element.selectFirst(".immowelt-price")?.text()?.trim() ?: ""
+            val address = element.selectFirst(".immowelt-address")?.text()?.trim() ?: ""
+            val parts = address.split(",")
+            val district = parts.getOrNull(0)?.trim() ?: ""
+            val city = parts.getOrNull(1)?.trim() ?: ""
+            val summary = element.selectFirst(".immowelt-desc")?.text()?.trim() ?: ""
+            val image = element.selectFirst("img")?.attr("src")
+            val images = if (image.isNullOrBlank()) emptyList() else listOf(image)
+            Listing(
+                id = id,
+                title = title,
+                url = "https://www.immowelt.de$href",
+                date = "",
+                district = district,
+                city = city,
+                price = price,
+                summary = summary,
+                imageUrls = images,
+                isSearch = false,
+            )
+        }
+    }
+
+    /**
+     * Parst ein Wohnungsboerse-Dokument in Listings.
+     */
+    fun parseWohnungsboerse(document: Document): List<Listing> {
+        return document.select("article.wohnungsboerse-entry").mapNotNull { element ->
+            val id = element.attr("data-id")
+            val link = element.selectFirst("a.wohnungsboerse-link")
+            val href = link?.attr("href")
+            val title = link?.text()
+            if (id.isBlank() || href == null || title.isNullOrBlank()) {
+                return@mapNotNull null
+            }
+            val price = element.selectFirst(".wohnungsboerse-price")?.text()?.trim() ?: ""
+            val address = element.selectFirst(".wohnungsboerse-address")?.text()?.trim() ?: ""
+            val parts = address.split(",")
+            val district = parts.getOrNull(0)?.trim() ?: ""
+            val city = parts.getOrNull(1)?.trim() ?: ""
+            val summary = element.selectFirst(".wohnungsboerse-desc")?.text()?.trim() ?: ""
+            val image = element.selectFirst("img")?.attr("src")
+            val images = if (image.isNullOrBlank()) emptyList() else listOf(image)
+            Listing(
+                id = id,
+                title = title,
+                url = "https://www.wohnungsboerse.net$href",
+                date = "",
+                district = district,
+                city = city,
+                price = price,
+                summary = summary,
+                imageUrls = images,
+                isSearch = false,
+            )
+        }
+    }
+
+    /**
      * Wandelt ein einzelnes HTML-Element in ein Listing-Objekt um.
      */
     private fun parseListing(element: Element): Listing? {
