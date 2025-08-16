@@ -48,6 +48,10 @@ class EbayRepository {
         val price = element.selectFirst(".aditem-main--middle--price-shipping")?.text()?.trim() ?: ""
         val description = element.selectFirst(".aditem-main--middle--description")?.text()?.trim() ?: ""
         val summary = generateSummary(description)
+        val images = element.select("img").mapNotNull {
+            it.attr("data-src").takeIf { src -> src.isNotBlank() }
+                ?: it.attr("src").takeIf { src -> src.isNotBlank() }
+        }.distinct()
         val isSearch = listOf(title, description).any {
             it.contains("suche", ignoreCase = true) || it.contains("gesuch", ignoreCase = true)
         }
@@ -60,6 +64,7 @@ class EbayRepository {
             city = city,
             price = price,
             summary = summary,
+            imageUrls = images,
             isSearch = isSearch,
         )
     }

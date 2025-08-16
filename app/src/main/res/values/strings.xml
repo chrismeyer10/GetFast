@@ -14,6 +14,8 @@
     <string name="search_tab">Suche</string>
     <string name="copyright">\u00A9 2024 Christian Meyer</string>
     <string name="new_listing_channel">Neue Wohnungen</string>
+    <string name="show_images">Bilder</string>
+    <string name="show_text">Text</string>
     <string name="city_label">Stadt</string>
     <string name="max_price_label">Max. Preis (€)</string>
     <string name="apply_filters">Filter anwenden</string>

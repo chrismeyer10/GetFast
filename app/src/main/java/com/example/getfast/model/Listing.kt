@@ -9,5 +9,6 @@ data class Listing(
     val city: String,
     val price: String,
     val summary: String,
+    val imageUrls: List<String> = emptyList(),
     val isSearch: Boolean = false,
 )

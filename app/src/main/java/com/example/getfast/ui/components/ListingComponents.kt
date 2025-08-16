@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,9 +47,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.getfast.R
 import com.example.getfast.model.Listing
 import com.example.getfast.utils.ListingDateUtils
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.delay
 
 @Composable
 fun ListingList(
@@ -155,6 +160,14 @@ fun ListingCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         border = BorderStroke(2.dp, borderColor),
     ) {
+        var showImages by remember { mutableStateOf(false) }
+        var currentImageIndex by remember { mutableStateOf(0) }
+        LaunchedEffect(showImages) {
+            while (showImages && listing.imageUrls.isNotEmpty()) {
+                delay(3000)
+                currentImageIndex = (currentImageIndex + 1) % listing.imageUrls.size
+            }
+        }
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -163,6 +176,12 @@ fun ListingCard(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
+                TextButton(onClick = {
+                    showImages = !showImages
+                    currentImageIndex = 0
+                }) {
+                    Text(text = if (showImages) stringResource(id = R.string.show_text) else stringResource(id = R.string.show_images))
+                }
                 IconToggleButton(checked = isFavorite, onCheckedChange = { onToggleFavorite(listing) }) {
                     if (isFavorite) {
                         Icon(
@@ -178,31 +197,42 @@ fun ListingCard(
                     }
                 }
             }
-            val isNew = ListingDateUtils.isRecent(listing.date)
-            Text(
-                text = buildAnnotatedString {
-                    append(listing.date)
-                    if (isNew) {
-                        append(" ")
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
-                            append("NEU")
+            if (showImages && listing.imageUrls.isNotEmpty()) {
+                AsyncImage(
+                    model = listing.imageUrls[currentImageIndex],
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1.5f),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                val isNew = ListingDateUtils.isRecent(listing.date)
+                Text(
+                    text = buildAnnotatedString {
+                        append(listing.date)
+                        if (isNew) {
+                            append(" ")
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
+                                append("NEU")
+                            }
                         }
-                    }
-                    append(" • ${listing.district}, ${listing.city} • ")
-                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
-                        append(listing.price)
-                    }
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = listing.summary,
-                modifier = Modifier.padding(top = 8.dp),
-                style = MaterialTheme.typography.bodySmall,
-                fontStyle = FontStyle.Italic
-            )
+                        append(" • ${listing.district}, ${listing.city} • ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                            append(listing.price)
+                        }
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = listing.summary,
+                    modifier = Modifier.padding(top = 8.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontStyle = FontStyle.Italic
+                )
+            }
         }
     }
 }
