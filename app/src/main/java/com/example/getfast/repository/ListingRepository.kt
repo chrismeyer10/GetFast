@@ -6,6 +6,8 @@ import com.example.getfast.model.ListingSource
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 /**
  * Repository zum Abrufen und Filtern von Wohnungsanzeigen.
@@ -65,7 +67,9 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmoscout(filter: SearchFilter): List<Listing> {
-        val url = "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=${filter.city.displayName}"
+        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8)
+        val price = filter.maxPrice?.let { "&price=-$it" } ?: ""
+        val url = "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=$city$price"
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmoscout(doc)
@@ -75,7 +79,9 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmonet(filter: SearchFilter): List<Listing> {
-        val url = "https://www.immonet.de/${filter.city.displayName}"
+        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8)
+        val price = filter.maxPrice?.let { "&toprice=$it" } ?: ""
+        val url = "https://www.immonet.de/wohnung-mieten.html?city=$city$price"
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmonet(doc)
@@ -85,7 +91,9 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmowelt(filter: SearchFilter): List<Listing> {
-        val url = "https://www.immowelt.de/${filter.city.displayName}"
+        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8)
+        val price = filter.maxPrice?.let { "&maxprice=$it" } ?: ""
+        val url = "https://www.immowelt.de/suche/wohnung-mieten?city=$city$price"
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmowelt(doc)
@@ -95,7 +103,13 @@ class ListingRepository(
     }
 
     private suspend fun fetchWohnungsboerse(filter: SearchFilter): List<Listing> {
-        val url = "https://www.wohnungsboerse.net/${filter.city.displayName}"
+        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8)
+        val price = filter.maxPrice?.let { "?maxMiete=$it" } ?: ""
+        val url = if (price.isEmpty()) {
+            "https://www.wohnungsboerse.net/$city/mietwohnungen"
+        } else {
+            "https://www.wohnungsboerse.net/$city/mietwohnungen$price"
+        }
         return try {
             val doc = fetcher.fetch(url)
             parser.parseWohnungsboerse(doc)
