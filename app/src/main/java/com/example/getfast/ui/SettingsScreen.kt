@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -45,7 +46,7 @@ fun SettingsScreen(
 ) {
     var selectedCity by remember { mutableStateOf(filter.city) }
     var priceText by remember { mutableStateOf(filter.maxPrice?.toString() ?: "") }
-    var sources by remember { mutableStateOf(filter.sources.toMutableSet()) }
+    val sources = remember { mutableStateListOf<ListingSource>().apply { addAll(filter.sources) } }
 
     Column(
         modifier = Modifier
@@ -122,7 +123,7 @@ fun SettingsScreen(
                     SearchFilter(
                         city = selectedCity,
                         maxPrice = priceText.toIntOrNull(),
-                        sources = sources
+                        sources = sources.toSet()
                     )
                 )
             },

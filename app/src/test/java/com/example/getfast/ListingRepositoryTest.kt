@@ -1,6 +1,7 @@
 package com.example.getfast
 
 import com.example.getfast.model.SearchFilter
+import com.example.getfast.model.ListingSource
 import com.example.getfast.repository.ListingRepository
 import com.example.getfast.repository.HtmlFetcher
 import kotlinx.coroutines.runBlocking
@@ -33,11 +34,31 @@ class ListingRepositoryTest {
         </body></html>
     """.trimIndent()
 
+    private val immoscoutHtml = """
+        <html><body>
+        <article class='result-list-entry' data-obid='10'>
+          <a href='/expose/10' class='result-list-entry__brand-title-container'>Immo 1</a>
+          <div class='result-list-entry__primary-criterion'>200 €</div>
+          <div class='result-list-entry__address'>Bezirk, Stadt</div>
+          <div class='result-list-entry__description'>Beschreibung.</div>
+        </article>
+        </body></html>
+    """.trimIndent()
+
     @Test
     fun fetchLatestListings_filtersByMaxPrice() = runBlocking {
         val repo = ListingRepository(fetcher = FakeFetcher(html))
         val listings = repo.fetchLatestListings(SearchFilter(maxPrice = 60))
         assertEquals(1, listings.size)
         assertEquals("2", listings[0].id)
+    }
+
+    @Test
+    fun fetchLatestListings_returnsImmoscoutListings() = runBlocking {
+        val repo = ListingRepository(fetcher = FakeFetcher(immoscoutHtml))
+        val filter = SearchFilter(sources = setOf(ListingSource.IMMOSCOUT))
+        val listings = repo.fetchLatestListings(filter)
+        assertEquals(1, listings.size)
+        assertEquals("Immo 1", listings[0].title)
     }
 }
