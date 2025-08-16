@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -68,8 +69,8 @@ class MainActivity : ComponentActivity() {
         }
         val notifier = Notifier(this)
         setContent {
-            val darkMode by viewModel.darkMode.collectAsState()
-            GetFastTheme(darkTheme = darkMode) {
+            val systemDark = isSystemInDarkTheme()
+            GetFastTheme(darkTheme = systemDark) {
                 val listings by viewModel.listings.collectAsState()
                 val lastFetch by viewModel.lastFetchTime.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
@@ -100,12 +101,10 @@ class MainActivity : ComponentActivity() {
                 if (showSettings) {
                     SettingsScreen(
                         filter = filter,
-                        darkMode = darkMode,
                         onApply = {
                             viewModel.updateFilter(it)
                             showSettings = false
                         },
-                        onDarkModeChange = { viewModel.setDarkMode(it) },
                         onBack = { showSettings = false },
                     )
                 } else {

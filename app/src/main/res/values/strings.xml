@@ -24,5 +24,6 @@
     <string name="back">Zurück</string>
     <string name="source_kleinanzeigen">Kleinanzeigen</string>
     <string name="source_immoscout">ImmoScout</string>
-    <string name="dark_mode">Dunkler Modus</string>
+    <string name="expand_card">Anzeige vergrößern</string>
+    <string name="collapse_card">Anzeige verkleinern</string>
 </resources>
