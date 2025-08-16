@@ -12,4 +12,5 @@
     <string name="offers_tab">Angebote</string>
     <string name="search_tab">Suche</string>
     <string name="copyright">\u00A9 2024 Christian Meyer</string>
+    <string name="new_listing_channel">Neue Wohnungen</string>
 </resources>

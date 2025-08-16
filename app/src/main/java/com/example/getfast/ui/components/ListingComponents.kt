@@ -3,6 +3,7 @@ package com.example.getfast.ui.components
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateColor
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -26,10 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -48,6 +56,8 @@ fun ListingList(
     favorites: Set<String>,
     favoritesOnly: Boolean,
     onToggleFavorite: (Listing) -> Unit,
+    highlightedIds: Set<String> = emptySet(),
+    blinkingIds: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -76,7 +86,9 @@ fun ListingList(
             ListingCard(
                 listing = listing,
                 isFavorite = favorites.contains(listing.id),
-                onToggleFavorite = onToggleFavorite
+                onToggleFavorite = onToggleFavorite,
+                highlighted = highlightedIds.contains(listing.id),
+                blink = blinkingIds.contains(listing.id),
             ) { selectedListing = listing }
         }
     }
@@ -116,14 +128,32 @@ fun ListingCard(
     listing: Listing,
     isFavorite: Boolean,
     onToggleFavorite: (Listing) -> Unit,
+    highlighted: Boolean,
+    blink: Boolean,
     onClick: () -> Unit,
 ) {
+    val baseColor = if (highlighted) MaterialTheme.colorScheme.error else Color.Transparent
+    val borderColor by if (blink) {
+        val infinite = rememberInfiniteTransition(label = "blink")
+        infinite.animateColor(
+            initialValue = baseColor,
+            targetValue = Color.Transparent,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 500),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "color",
+        )
+    } else {
+        rememberUpdatedState(baseColor)
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = BorderStroke(2.dp, borderColor),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
