@@ -1,7 +1,7 @@
 package com.example.getfast
 
 import com.example.getfast.model.SearchFilter
-import com.example.getfast.repository.EbayRepository
+import com.example.getfast.repository.ListingRepository
 import com.example.getfast.repository.HtmlFetcher
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
@@ -13,7 +13,7 @@ private class FakeFetcher(private val html: String) : HtmlFetcher {
     override suspend fun fetch(url: String): Document = Jsoup.parse(html)
 }
 
-class EbayRepositoryTest {
+class ListingRepositoryTest {
     private val html = """
         <html><body>
         <article class='aditem' data-adid='1'>
@@ -35,7 +35,7 @@ class EbayRepositoryTest {
 
     @Test
     fun fetchLatestListings_filtersByMaxPrice() = runBlocking {
-        val repo = EbayRepository(fetcher = FakeFetcher(html))
+        val repo = ListingRepository(fetcher = FakeFetcher(html))
         val listings = repo.fetchLatestListings(SearchFilter(maxPrice = 60))
         assertEquals(1, listings.size)
         assertEquals("2", listings[0].id)
