@@ -4,6 +4,7 @@
     <string name="refresh">Aktualisieren</string>
     <string name="all_tab">Alle</string>
     <string name="favorites_tab">Favoriten</string>
+    <string name="clear_favorites">Favoriten löschen</string>
     <string name="favorite">Favorit</string>
     <string name="not_favorite">Nicht Favorit</string>
     <string name="open_in_app">In App öffnen</string>
@@ -15,4 +16,7 @@
     <string name="new_listing_channel">Neue Wohnungen</string>
     <string name="show_images">Bilder</string>
     <string name="show_text">Text</string>
+    <string name="city_label">Stadt</string>
+    <string name="max_price_label">Max. Preis (€)</string>
+    <string name="apply_filters">Filter anwenden</string>
 </resources>
