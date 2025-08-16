@@ -81,6 +81,7 @@ class MainActivity : ComponentActivity() {
                 val favorites by viewModel.favorites.collectAsState()
                 val filter by viewModel.filter.collectAsState()
                 val isRefreshing by viewModel.isRefreshing.collectAsState()
+                val archived by viewModel.archived.collectAsState()
                 var showFavoritesOnly by remember { mutableStateOf(false) }
                 var currentTab by remember { mutableStateOf(ListingTab.OFFERS) }
                 var selectedCity by remember { mutableStateOf(filter.city) }
@@ -103,9 +104,9 @@ class MainActivity : ComponentActivity() {
                     }
                     seenIds.addAll(newItems.map { it.id })
                 }
-                val tabFiltered = listings.filter {
-                    if (currentTab == ListingTab.SEARCH) it.isSearch else !it.isSearch
-                }
+                val tabFiltered = listings
+                    .filter { it.id !in archived }
+                    .filter { if (currentTab == ListingTab.SEARCH) it.isSearch else !it.isSearch }
                 val highlightedIds = tabFiltered.take(2).map { it.id }.toSet()
                 Column(
                     modifier = Modifier
@@ -254,6 +255,7 @@ class MainActivity : ComponentActivity() {
                         blinkingIds = blinkingIds.value,
                         isRefreshing = isRefreshing,
                         onRefresh = { viewModel.refreshListings() },
+                        onArchive = { viewModel.archive(it) },
                         modifier = Modifier.weight(1f),
                     )
                     Text(
