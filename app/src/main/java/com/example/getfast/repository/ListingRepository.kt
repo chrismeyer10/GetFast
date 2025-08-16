@@ -57,7 +57,8 @@ class ListingRepository(
     }
 
     private suspend fun fetchKleinanzeigen(filter: SearchFilter): List<Listing> {
-        val url = "https://www.kleinanzeigen.de/s-wohnung-mieten/${filter.city.urlPath}"
+        val path = filter.city.pathFor(ListingSource.KLEINANZEIGEN)
+        val url = "https://www.kleinanzeigen.de/s-wohnung-mieten/$path"
         return try {
             val doc = fetcher.fetch(url)
             parser.parse(doc)
@@ -82,6 +83,7 @@ class ListingRepository(
         val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8)
         val price = filter.maxPrice?.let { "&toprice=$it" } ?: ""
         val url = "https://www.immonet.de/wohnung-mieten.html?city=$city$price"
+
         return try {
             val doc = fetcher.fetch(url)
             parser.parseImmonet(doc)
@@ -91,6 +93,7 @@ class ListingRepository(
     }
 
     private suspend fun fetchImmowelt(filter: SearchFilter): List<Listing> {
+
         val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8)
         val price = filter.maxPrice?.let { "&maxprice=$it" } ?: ""
         val url = "https://www.immowelt.de/suche/wohnung-mieten?city=$city$price"
