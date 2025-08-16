@@ -200,3 +200,4 @@ class MainActivity : ComponentActivity() {
         viewModel.refreshListings()
     }
 }
+}
