@@ -1,21 +1,31 @@
 package com.example.getfast.repository
 
 import com.example.getfast.model.Listing
+import com.example.getfast.model.SearchFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
-class EbayRepository(
-    private val searchUrl: String = "https://www.kleinanzeigen.de/s-wohnung-mieten/berlin/c203l3331"
-) {
-    suspend fun fetchLatestListings(): List<Listing> = withContext(Dispatchers.IO) {
+class EbayRepository {
+    suspend fun fetchLatestListings(filter: SearchFilter): List<Listing> = withContext(Dispatchers.IO) {
+        val url = "https://www.kleinanzeigen.de/s-wohnung-mieten/${filter.city.urlPath}"
         try {
-            val doc = Jsoup.connect(searchUrl)
+            val doc = Jsoup.connect(url)
                 .userAgent("Mozilla/5.0")
                 .get()
-            doc.select("article.aditem").mapNotNull { element ->
+            val listings = doc.select("article.aditem").mapNotNull { element ->
                 parseListing(element)
+            }
+            val maxPrice = filter.maxPrice
+            if (maxPrice != null) {
+                listings.filter { listing ->
+                    val numeric = listing.price.replace("\\D".toRegex(), "")
+                    val priceValue = numeric.toIntOrNull()
+                    priceValue != null && priceValue <= maxPrice
+                }
+            } else {
+                listings
             }
         } catch (e: Exception) {
             emptyList()
