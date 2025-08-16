@@ -55,6 +55,10 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: ListingViewModel by viewModels()
 
+    /**
+     * Initialisiert die Oberfläche und startet das Beobachten der Daten.
+     * Hier werden Berechtigungen geprüft und das UI gesetzt.
+     */
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
