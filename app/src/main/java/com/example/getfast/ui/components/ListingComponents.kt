@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
@@ -42,7 +44,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +67,6 @@ import com.example.getfast.R
 import com.example.getfast.model.Listing
 import com.example.getfast.utils.ListingDateUtils
 import androidx.compose.ui.layout.ContentScale
-import kotlinx.coroutines.delay
 
 /**
  * Zeigt eine Liste von Listings mit Favoritenfunktion an.
@@ -195,18 +195,11 @@ fun ListingCard(
         rememberUpdatedState(baseColor)
     }
     var expanded by remember { mutableStateOf(false) }
-    var currentImageIndex by remember { mutableStateOf(0) }
     var dragAmount by remember { mutableStateOf(0f) }
-    LaunchedEffect(expanded) {
-        while (expanded && listing.imageUrls.isNotEmpty()) {
-            delay(3000)
-            currentImageIndex = (currentImageIndex + 1) % listing.imageUrls.size
-        }
-    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 16.dp)
             .draggable(
                 orientation = Orientation.Horizontal,
                 state = rememberDraggableState { delta ->
@@ -217,17 +210,18 @@ fun ListingCard(
                     }
                 },
                 onDragStopped = { dragAmount = 0f },
+                enabled = !expanded,
             )
             .clickable(onClick = onClick)
             .animateContentSize(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         border = BorderStroke(2.dp, borderColor),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = listing.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
@@ -255,15 +249,24 @@ fun ListingCard(
                 }
             }
             if (expanded && listing.imageUrls.isNotEmpty()) {
-                AsyncImage(
-                    model = listing.imageUrls[currentImageIndex],
-                    contentDescription = null,
+                LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1.5f),
-                    contentScale = ContentScale.Crop
-                )
+                        .height(240.dp)
+                ) {
+                    items(listing.imageUrls) { imageUrl ->
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .aspectRatio(1.3f),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
+            val provider = remember(listing.url) { Uri.parse(listing.url).host?.removePrefix("www.") ?: "" }
             val isNew = ListingDateUtils.isRecent(listing.date)
             Text(
                 text = buildAnnotatedString {
@@ -277,6 +280,9 @@ fun ListingCard(
                     append(" • ${listing.district}, ${listing.city} • ")
                     withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
                         append(listing.price)
+                    }
+                    if (provider.isNotEmpty()) {
+                        append(" • $provider")
                     }
                 },
                 style = MaterialTheme.typography.bodyMedium,

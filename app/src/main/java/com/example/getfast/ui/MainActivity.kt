@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
                         notifier.notifyNewListing(listing.title)
                         blinkingIds.value = blinkingIds.value + listing.id
                         launch {
-                            delay(10_000)
+                            delay(5_000)
                             blinkingIds.value = blinkingIds.value - listing.id
                         }
                     }
