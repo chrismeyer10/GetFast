@@ -23,6 +23,7 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -66,6 +67,7 @@ import kotlinx.coroutines.delay
 /**
  * Zeigt eine Liste von Listings mit Favoritenfunktion an.
  */
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ListingList(
     listings: List<Listing>,
