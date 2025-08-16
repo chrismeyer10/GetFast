@@ -163,6 +163,12 @@ class MainActivity : ComponentActivity() {
                                         onClick = {
                                             selectedCity = city
                                             expanded = false
+                                            viewModel.updateFilter(
+                                                SearchFilter(
+                                                    city = city,
+                                                    maxPrice = priceText.toIntOrNull(),
+                                                ),
+                                            )
                                         },
                                     )
                                 }
@@ -176,14 +182,17 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.weight(1f),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {
-                            viewModel.updateFilter(
-                                SearchFilter(
-                                    city = selectedCity,
-                                    maxPrice = priceText.toIntOrNull(),
-                                ),
-                            )
-                        }) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                viewModel.updateFilter(
+                                    SearchFilter(
+                                        city = selectedCity,
+                                        maxPrice = priceText.toIntOrNull(),
+                                    ),
+                                )
+                            },
+                        ) {
                             Text(text = stringResource(id = R.string.apply_filters))
                         }
                     }
