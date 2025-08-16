@@ -13,4 +13,6 @@
     <string name="search_tab">Suche</string>
     <string name="copyright">\u00A9 2024 Christian Meyer</string>
     <string name="new_listing_channel">Neue Wohnungen</string>
+    <string name="show_images">Bilder</string>
+    <string name="show_text">Text</string>
 </resources>
