@@ -12,6 +12,9 @@ private val LightColors = lightColorScheme(
     error = ErrorColor,
 )
 
+/**
+ * Stellt das Farb- und Typografie-Schema der App bereit.
+ */
 @Composable
 fun GetFastTheme(content: @Composable () -> Unit) {
     MaterialTheme(

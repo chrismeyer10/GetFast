@@ -11,6 +11,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.getfast.R
 
+/**
+ * Verwaltet die Anzeige von Benachrichtigungen über neue Listings.
+ */
 class Notifier(private val context: Context) {
 
     init {
@@ -24,6 +27,10 @@ class Notifier(private val context: Context) {
         }
     }
 
+    /**
+     * Zeigt eine Benachrichtigung mit dem gegebenen Titel an.
+     * Es wird nur benachrichtigt, wenn die Berechtigung vorliegt.
+     */
     fun notifyNewListing(title: String) {
         if (
             ActivityCompat.checkSelfPermission(

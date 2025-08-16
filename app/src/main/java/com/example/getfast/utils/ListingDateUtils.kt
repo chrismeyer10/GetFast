@@ -4,10 +4,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Helferfunktionen zur Auswertung von Datumsangaben der Listings.
+ */
 object ListingDateUtils {
     private val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+    /**
+     * Prüft, ob ein Datum innerhalb der letzten zehn Minuten liegt.
+     */
     fun isRecent(dateString: String, now: Date = Date()): Boolean {
         return try {
             val listingDate = parseDate(dateString, now) ?: return false
@@ -18,6 +24,9 @@ object ListingDateUtils {
         }
     }
 
+    /**
+     * Wandelt unterschiedliche Datumsformate in ein Date-Objekt um.
+     */
     private fun parseDate(dateString: String, now: Date): Date? {
         return try {
             when {

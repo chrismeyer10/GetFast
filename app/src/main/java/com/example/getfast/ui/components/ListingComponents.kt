@@ -59,6 +59,9 @@ import com.example.getfast.utils.ListingDateUtils
 import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.delay
 
+/**
+ * Zeigt eine Liste von Listings mit Favoritenfunktion an.
+ */
 @Composable
 fun ListingList(
     listings: List<Listing>,
@@ -132,6 +135,9 @@ fun ListingList(
     }
 }
 
+/**
+ * Einzelkarte eines Listings mit optionaler Bildvorschau.
+ */
 @Composable
 fun ListingCard(
     listing: Listing,
@@ -243,4 +249,3 @@ fun ListingCard(
         }
     }
 }
-

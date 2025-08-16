@@ -21,6 +21,9 @@ import kotlinx.coroutines.launch
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "favorites")
 
+/**
+ * ViewModel hält Zustand und Geschäftslogik der Listing-Ansicht.
+ */
 class ListingViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
@@ -52,6 +55,9 @@ class ListingViewModel(
         }
     }
 
+    /**
+     * Lädt Listings vom Repository und aktualisiert den Zeitstempel.
+     */
     fun refreshListings() {
         viewModelScope.launch {
             _isRefreshing.value = true
@@ -62,11 +68,17 @@ class ListingViewModel(
         }
     }
 
+    /**
+     * Aktualisiert den Suchfilter und lädt sofort neue Daten.
+     */
     fun updateFilter(newFilter: SearchFilter) {
         _filter.value = newFilter
         refreshListings()
     }
 
+    /**
+     * Merkt oder entfernt ein Listing aus den Favoriten.
+     */
     fun toggleFavorite(listing: Listing) {
         val id = listing.id
         _favorites.value = if (_favorites.value.contains(id)) {
@@ -79,6 +91,9 @@ class ListingViewModel(
         }
     }
 
+    /**
+     * Entfernt alle Favoriten und speichert den Zustand.
+     */
     fun clearFavorites() {
         _favorites.value = emptySet()
         viewModelScope.launch {
@@ -86,4 +101,3 @@ class ListingViewModel(
         }
     }
 }
-

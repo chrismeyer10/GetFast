@@ -1,19 +1,11 @@
 package com.example.getfast
 
-import com.example.getfast.model.SearchFilter
-import com.example.getfast.repository.EbayRepository
-import com.example.getfast.repository.HtmlFetcher
-import kotlinx.coroutines.runBlocking
+import com.example.getfast.repository.ListingParser
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-private class FakeFetcher(private val html: String) : HtmlFetcher {
-    override suspend fun fetch(url: String): Document = Jsoup.parse(html)
-}
-
-class EbayRepositoryTest {
+class ListingParserTest {
     private val html = """
         <html><body>
         <article class='aditem' data-adid='1'>
@@ -34,10 +26,11 @@ class EbayRepositoryTest {
     """.trimIndent()
 
     @Test
-    fun fetchLatestListings_filtersByMaxPrice() = runBlocking {
-        val repo = EbayRepository(fetcher = FakeFetcher(html))
-        val listings = repo.fetchLatestListings(SearchFilter(maxPrice = 60))
-        assertEquals(1, listings.size)
-        assertEquals("2", listings[0].id)
+    fun parse_returnsAllListings() {
+        val parser = ListingParser()
+        val doc = Jsoup.parse(html)
+        val listings = parser.parse(doc)
+        assertEquals(2, listings.size)
+        assertEquals("Titel 1", listings[0].title)
     }
 }
