@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,7 +41,8 @@ abstract class ProviderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GetFastTheme {
+            val systemDark = isSystemInDarkTheme()
+            GetFastTheme(darkTheme = systemDark) {
                 val listings by viewModel.listings.collectAsState()
                 val lastFetch by viewModel.lastFetchTime.collectAsState()
                 val isRefreshing by viewModel.isRefreshing.collectAsState()
