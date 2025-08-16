@@ -46,6 +46,7 @@ fun SettingsScreen(
 ) {
     var selectedCity by remember { mutableStateOf(filter.city) }
     var priceText by remember { mutableStateOf(filter.maxPrice?.toString() ?: "") }
+    var daysText by remember { mutableStateOf(filter.maxAgeDays.toString()) }
     val sources = remember { mutableStateListOf<ListingSource>().apply { addAll(filter.sources) } }
 
     Column(
@@ -94,6 +95,13 @@ fun SettingsScreen(
             value = priceText,
             onValueChange = { priceText = it.filter { ch -> ch.isDigit() } },
             label = { Text(text = stringResource(id = R.string.max_price_label)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = daysText,
+            onValueChange = { daysText = it.filter { ch -> ch.isDigit() }.take(1) },
+            label = { Text(text = stringResource(id = R.string.max_days_label)) },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -152,6 +160,7 @@ fun SettingsScreen(
                     SearchFilter(
                         city = selectedCity,
                         maxPrice = priceText.toIntOrNull(),
+                        maxAgeDays = daysText.toIntOrNull()?.coerceIn(0, 3) ?: 3,
                         sources = sources.toSet()
                     )
                 )

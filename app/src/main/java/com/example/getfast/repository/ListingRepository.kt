@@ -3,6 +3,9 @@ package com.example.getfast.repository
 import com.example.getfast.model.Listing
 import com.example.getfast.model.SearchFilter
 import com.example.getfast.model.ListingSource
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * Repository zum Abrufen und Filtern von Wohnungsanzeigen.
@@ -36,7 +39,7 @@ class ListingRepository(
             results += fetchWohnungsboerse(filter)
         }
         val maxPrice = filter.maxPrice
-        return if (maxPrice != null) {
+        val priceFiltered = if (maxPrice != null) {
             results.filter { listing ->
                 val numeric = listing.price.replace("\\D".toRegex(), "")
                 val priceValue = numeric.toIntOrNull()
@@ -44,6 +47,10 @@ class ListingRepository(
             }
         } else {
             results
+        }
+        val maxDays = filter.maxAgeDays.coerceAtMost(3)
+        return priceFiltered.filter { listing ->
+            isWithinDays(listing.date, maxDays)
         }
     }
 
@@ -94,6 +101,26 @@ class ListingRepository(
             parser.parseWohnungsboerse(doc)
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    private fun isWithinDays(dateText: String, maxDays: Int): Boolean {
+        val date = parseDate(dateText) ?: return true
+        val threshold = LocalDate.now().minusDays(maxDays.toLong())
+        return !date.isBefore(threshold)
+    }
+
+    private fun parseDate(text: String): LocalDate? {
+        val lower = text.lowercase(Locale.getDefault()).trim()
+        val today = LocalDate.now()
+        return when {
+            lower.startsWith("heute") -> today
+            lower.startsWith("gestern") -> today.minusDays(1)
+            else -> {
+                val cleaned = lower.substringBefore(",").substringBefore(" ").trim()
+                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+                runCatching { LocalDate.parse(cleaned, formatter) }.getOrNull()
+            }
         }
     }
 }

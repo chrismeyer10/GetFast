@@ -18,6 +18,7 @@
     <string name="show_text">Text</string>
     <string name="city_label">Stadt</string>
     <string name="max_price_label">Max. Preis (€)</string>
+    <string name="max_days_label">Zeitraum (Tage, max. 3)</string>
     <string name="apply_filters">Filter anwenden</string>
     <string name="open_settings">Einstellungen</string>
     <string name="settings_title">Einstellungen</string>

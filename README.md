@@ -2,6 +2,8 @@
 
 Android app using MVVM architecture to monitor multiple housing listing providers (eBay Kleinanzeigen, ImmoScout, Immonet, Immowelt, Wohnungsboerse.net) for new housing listings. By default the search pulls results from all providers, but sources can be toggled in Settings. The app fetches listings from a configurable search URL, displays them in a list and triggers a local push notification for new entries.
 
+The settings screen also allows limiting the displayed listings to a recent time range (up to three days in the past).
+
 ## Build & Run
 
 The project is built with Gradle. On Windows, build the debug APK with:
