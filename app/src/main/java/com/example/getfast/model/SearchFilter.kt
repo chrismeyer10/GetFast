@@ -10,7 +10,7 @@ package com.example.getfast.model
 data class SearchFilter(
     val city: City = City.BERLIN,
     val maxPrice: Int? = null,
-    val sources: Set<ListingSource> = setOf(ListingSource.KLEINANZEIGEN),
+    val sources: Set<ListingSource> = ListingSource.values().toSet(),
 )
 
 /**
