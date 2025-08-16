@@ -21,21 +21,22 @@ class ListingParser {
      * Parst ein Immoscout-Dokument in Listings.
      */
     fun parseImmoscout(document: Document): List<Listing> {
-        return document.select("article.result-list-entry").mapNotNull { element ->
+        return document.select("li.result-list__listing[data-obid]").mapNotNull { element ->
             val id = element.attr("data-obid")
             val link = element.selectFirst("a.result-list-entry__brand-title-container")
             val href = link?.attr("href")
-            val title = link?.text()
+            val title = link?.text()?.trim()
             if (id.isBlank() || href == null || title.isNullOrBlank()) {
                 return@mapNotNull null
             }
-            val price = element.selectFirst(".result-list-entry__primary-criterion")?.text()?.trim() ?: ""
+            val price = element.selectFirst(".result-list-entry__primary-criterion dd")?.text()?.trim() ?: ""
             val address = element.selectFirst(".result-list-entry__address")?.text()?.trim() ?: ""
             val parts = address.split(",")
             val district = parts.getOrNull(0)?.trim() ?: ""
             val city = parts.getOrNull(1)?.trim() ?: ""
             val summary = element.selectFirst(".result-list-entry__description")?.text()?.trim() ?: ""
-            val image = element.selectFirst("img")?.attr("src")
+            val image = element.selectFirst("img[data-src]")?.attr("data-src")
+                ?: element.selectFirst("img[src]")?.attr("src")
             val images = if (image.isNullOrBlank()) emptyList() else listOf(image)
             Listing(
                 id = id,
@@ -56,26 +57,27 @@ class ListingParser {
      * Parst ein Immonet-Dokument in Listings.
      */
     fun parseImmonet(document: Document): List<Listing> {
-        return document.select("article.immonet-entry").mapNotNull { element ->
+        return document.select("article.search-list-entry[data-id]").mapNotNull { element ->
             val id = element.attr("data-id")
-            val link = element.selectFirst("a.immonet-link")
+            val link = element.selectFirst("a[href*='/angebot/']")
             val href = link?.attr("href")
-            val title = link?.text()
+            val title = link?.text()?.trim()
             if (id.isBlank() || href == null || title.isNullOrBlank()) {
                 return@mapNotNull null
             }
-            val price = element.selectFirst(".immonet-price")?.text()?.trim() ?: ""
-            val address = element.selectFirst(".immonet-address")?.text()?.trim() ?: ""
+            val price = element.selectFirst(".result-item-price, .search-list-entry__primary-criterion")?.text()?.trim() ?: ""
+            val address = element.selectFirst(".result-item-address, .search-list-entry__address")?.text()?.trim() ?: ""
             val parts = address.split(",")
             val district = parts.getOrNull(0)?.trim() ?: ""
             val city = parts.getOrNull(1)?.trim() ?: ""
-            val summary = element.selectFirst(".immonet-desc")?.text()?.trim() ?: ""
-            val image = element.selectFirst("img")?.attr("src")
+            val summary = element.selectFirst(".result-item-description, .search-list-entry__description")?.text()?.trim() ?: ""
+            val image = element.selectFirst("img[data-src]")?.attr("data-src")
+                ?: element.selectFirst("img[src]")?.attr("src")
             val images = if (image.isNullOrBlank()) emptyList() else listOf(image)
             Listing(
                 id = id,
                 title = title,
-                url = "https://www.immonet.de$href",
+                url = if (href.startsWith("http")) href else "https://www.immonet.de$href",
                 date = "",
                 district = district,
                 city = city,
@@ -91,26 +93,27 @@ class ListingParser {
      * Parst ein Immowelt-Dokument in Listings.
      */
     fun parseImmowelt(document: Document): List<Listing> {
-        return document.select("article.immowelt-entry").mapNotNull { element ->
+        return document.select("div.EstateItem[data-id]").mapNotNull { element ->
             val id = element.attr("data-id")
-            val link = element.selectFirst("a.immowelt-link")
+            val link = element.selectFirst("a[href*='/expose/']")
             val href = link?.attr("href")
-            val title = link?.text()
+            val title = link?.text()?.trim()
             if (id.isBlank() || href == null || title.isNullOrBlank()) {
                 return@mapNotNull null
             }
-            val price = element.selectFirst(".immowelt-price")?.text()?.trim() ?: ""
-            val address = element.selectFirst(".immowelt-address")?.text()?.trim() ?: ""
+            val price = element.selectFirst(".EstateItem-price, .price")?.text()?.trim() ?: ""
+            val address = element.selectFirst(".EstateItem-address, .address")?.text()?.trim() ?: ""
             val parts = address.split(",")
             val district = parts.getOrNull(0)?.trim() ?: ""
             val city = parts.getOrNull(1)?.trim() ?: ""
-            val summary = element.selectFirst(".immowelt-desc")?.text()?.trim() ?: ""
-            val image = element.selectFirst("img")?.attr("src")
+            val summary = element.selectFirst(".EstateItem-description, .description")?.text()?.trim() ?: ""
+            val image = element.selectFirst("img[data-src]")?.attr("data-src")
+                ?: element.selectFirst("img[src]")?.attr("src")
             val images = if (image.isNullOrBlank()) emptyList() else listOf(image)
             Listing(
                 id = id,
                 title = title,
-                url = "https://www.immowelt.de$href",
+                url = if (href.startsWith("http")) href else "https://www.immowelt.de$href",
                 date = "",
                 district = district,
                 city = city,
@@ -126,21 +129,22 @@ class ListingParser {
      * Parst ein Wohnungsboerse-Dokument in Listings.
      */
     fun parseWohnungsboerse(document: Document): List<Listing> {
-        return document.select("article.wohnungsboerse-entry").mapNotNull { element ->
+        return document.select("div.inserate-result[data-id]").mapNotNull { element ->
             val id = element.attr("data-id")
-            val link = element.selectFirst("a.wohnungsboerse-link")
+            val link = element.selectFirst("a.ad-list-item")
             val href = link?.attr("href")
-            val title = link?.text()
+            val title = link?.selectFirst("h2")?.text()?.trim()
             if (id.isBlank() || href == null || title.isNullOrBlank()) {
                 return@mapNotNull null
             }
-            val price = element.selectFirst(".wohnungsboerse-price")?.text()?.trim() ?: ""
-            val address = element.selectFirst(".wohnungsboerse-address")?.text()?.trim() ?: ""
+            val price = link.selectFirst(".mietpreis")?.text()?.trim() ?: ""
+            val address = link.selectFirst(".adresse")?.text()?.trim() ?: ""
             val parts = address.split(",")
             val district = parts.getOrNull(0)?.trim() ?: ""
             val city = parts.getOrNull(1)?.trim() ?: ""
-            val summary = element.selectFirst(".wohnungsboerse-desc")?.text()?.trim() ?: ""
-            val image = element.selectFirst("img")?.attr("src")
+            val summary = link.selectFirst(".beschreibung")?.text()?.trim() ?: ""
+            val image = link.selectFirst("img[data-src]")?.attr("data-src")
+                ?: link.selectFirst("img[src]")?.attr("src")
             val images = if (image.isNullOrBlank()) emptyList() else listOf(image)
             Listing(
                 id = id,

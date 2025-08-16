@@ -27,49 +27,51 @@ class ListingParserTest {
 
     private val immoscoutHtml = """
         <html><body>
-        <article class='result-list-entry' data-obid='10'>
+        <li class='result-list__listing' data-obid='10'>
           <a href='/expose/10' class='result-list-entry__brand-title-container'>Immo 1</a>
-          <div class='result-list-entry__primary-criterion'>200 €</div>
+          <div class='result-list-entry__primary-criterion'><dd>200 €</dd></div>
           <div class='result-list-entry__address'>Bezirk, Stadt</div>
           <div class='result-list-entry__description'>Beschreibung.</div>
-          <img src='img.jpg'/>
-        </article>
+          <img data-src='img.jpg'/>
+        </li>
         </body></html>
     """.trimIndent()
 
     private val immonetHtml = """
         <html><body>
-        <article class='immonet-entry' data-id='20'>
-          <a href='/expose/20' class='immonet-link'>Net 1</a>
-          <div class='immonet-price'>300 €</div>
-          <div class='immonet-address'>Bezirk, Stadt</div>
-          <div class='immonet-desc'>Beschreibung.</div>
-          <img src='img.jpg'/>
+        <article class='search-list-entry' data-id='20'>
+          <a href='/angebot/20' class='result-item-title'>Net 1</a>
+          <div class='result-item-price'>300 €</div>
+          <div class='result-item-address'>Bezirk, Stadt</div>
+          <div class='result-item-description'>Beschreibung.</div>
+          <img data-src='img.jpg'/>
         </article>
         </body></html>
     """.trimIndent()
 
     private val immoweltHtml = """
         <html><body>
-        <article class='immowelt-entry' data-id='30'>
-          <a href='/expose/30' class='immowelt-link'>Welt 1</a>
-          <div class='immowelt-price'>400 €</div>
-          <div class='immowelt-address'>Bezirk, Stadt</div>
-          <div class='immowelt-desc'>Beschreibung.</div>
+        <div class='EstateItem' data-id='30'>
+          <a href='/expose/30' class='EstateItem-title'>Welt 1</a>
+          <div class='EstateItem-price'>400 €</div>
+          <div class='EstateItem-address'>Bezirk, Stadt</div>
+          <div class='EstateItem-description'>Beschreibung.</div>
           <img src='img.jpg'/>
-        </article>
+        </div>
         </body></html>
     """.trimIndent()
 
     private val wohnungsboerseHtml = """
         <html><body>
-        <article class='wohnungsboerse-entry' data-id='40'>
-          <a href='/expose/40' class='wohnungsboerse-link'>Boerse 1</a>
-          <div class='wohnungsboerse-price'>500 €</div>
-          <div class='wohnungsboerse-address'>Bezirk, Stadt</div>
-          <div class='wohnungsboerse-desc'>Beschreibung.</div>
-          <img src='img.jpg'/>
-        </article>
+        <div class='inserate-result' data-id='40'>
+          <a href='/detail/40' class='ad-list-item'>
+            <h2>Boerse 1</h2>
+            <p class='mietpreis'>500 €</p>
+            <p class='adresse'>Bezirk, Stadt</p>
+            <p class='beschreibung'>Beschreibung.</p>
+            <img src='img.jpg'/>
+          </a>
+        </div>
         </body></html>
     """.trimIndent()
 
