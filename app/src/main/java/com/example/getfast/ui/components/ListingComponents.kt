@@ -78,6 +78,7 @@ fun ListingList(
     blinkingIds: Set<String> = emptySet(),
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
+    onArchive: (Listing) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -118,7 +119,9 @@ fun ListingList(
                     onToggleFavorite = onToggleFavorite,
                     highlighted = highlightedIds.contains(listing.id),
                     blink = blinkingIds.contains(listing.id),
-                ) { selectedListing = listing }
+                    onClick = { selectedListing = listing },
+                    onArchive = { onArchive(listing) },
+                )
             }
         }
 
@@ -170,6 +173,7 @@ fun ListingCard(
     highlighted: Boolean,
     blink: Boolean,
     onClick: () -> Unit,
+    onArchive: (Listing) -> Unit,
 ) {
     val baseColor = if (highlighted) MaterialTheme.colorScheme.error else Color.Transparent
     val borderColor by if (blink) {
@@ -188,6 +192,7 @@ fun ListingCard(
     }
     var expanded by remember { mutableStateOf(false) }
     var currentImageIndex by remember { mutableStateOf(0) }
+    var dragAmount by remember { mutableStateOf(0f) }
     LaunchedEffect(expanded) {
         while (expanded && listing.imageUrls.isNotEmpty()) {
             delay(3000)
@@ -198,6 +203,17 @@ fun ListingCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
+            .draggable(
+                orientation = Orientation.Horizontal,
+                state = rememberDraggableState { delta ->
+                    dragAmount += delta
+                    if (dragAmount > 100 || dragAmount < -100) {
+                        onArchive(listing)
+                        dragAmount = 0f
+                    }
+                },
+                onDragStopped = { dragAmount = 0f },
+            )
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { delta ->

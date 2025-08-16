@@ -33,7 +33,7 @@ class ListingViewModel(
 
     private val dataStore = application.dataStore
     private val favoritesKey = stringSetPreferencesKey("favorites")
-    private val darkModeKey = booleanPreferencesKey("dark_mode")
+    private val archivedKey = stringSetPreferencesKey("archived")
 
     private val _listings = MutableStateFlow<List<Listing>>(emptyList())
     val listings: StateFlow<List<Listing>> = _listings
@@ -48,8 +48,8 @@ class ListingViewModel(
     private val _favorites = MutableStateFlow<Set<String>>(emptySet())
     val favorites: StateFlow<Set<String>> = _favorites
 
-    private val _darkMode = MutableStateFlow(false)
-    val darkMode: StateFlow<Boolean> = _darkMode
+    private val _archived = MutableStateFlow<Set<String>>(emptySet())
+    val archived: StateFlow<Set<String>> = _archived
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
@@ -58,7 +58,7 @@ class ListingViewModel(
         viewModelScope.launch {
             val prefs = dataStore.data.first()
             _favorites.value = prefs[favoritesKey] ?: emptySet()
-            _darkMode.value = prefs[darkModeKey] ?: false
+            _archived.value = prefs[archivedKey] ?: emptySet()
         }
     }
 
@@ -102,6 +102,17 @@ class ListingViewModel(
         _darkMode.value = enabled
         viewModelScope.launch {
             dataStore.edit { it[darkModeKey] = enabled }
+        }
+    }
+
+    /**
+     * Markiert ein Listing als archiviert und speichert den Zustand.
+     */
+    fun archive(listing: Listing) {
+        val id = listing.id
+        _archived.value = _archived.value + id
+        viewModelScope.launch {
+            dataStore.edit { it[archivedKey] = _archived.value }
         }
     }
 
