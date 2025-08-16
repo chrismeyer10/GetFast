@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -75,6 +76,7 @@ class MainActivity : ComponentActivity() {
                 val lastFetch by viewModel.lastFetchTime.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
                 val filter by viewModel.filter.collectAsState()
+                val isRefreshing by viewModel.isRefreshing.collectAsState()
                 var showFavoritesOnly by remember { mutableStateOf(false) }
                 var currentTab by remember { mutableStateOf(ListingTab.OFFERS) }
                 var selectedCity by remember { mutableStateOf(filter.city) }
@@ -134,6 +136,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         var expanded by remember { mutableStateOf(false) }
                         ExposedDropdownMenuBox(
@@ -151,7 +154,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .menuAnchor()
-                                    .fillMaxWidth(),
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                singleLine = true,
                             )
                             DropdownMenu(
                                 expanded = expanded,
@@ -179,11 +184,16 @@ class MainActivity : ComponentActivity() {
                             value = priceText,
                             onValueChange = { priceText = it.filter { ch -> ch.isDigit() } },
                             label = { Text(text = stringResource(id = R.string.max_price_label)) },
-                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
                             onClick = {
                                 viewModel.updateFilter(
                                     SearchFilter(
@@ -238,6 +248,8 @@ class MainActivity : ComponentActivity() {
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
                         highlightedIds = highlightedIds,
                         blinkingIds = blinkingIds.value,
+                        isRefreshing = isRefreshing,
+                        onRefresh = { viewModel.refreshListings() },
                         modifier = Modifier.weight(1f),
                     )
                     Text(

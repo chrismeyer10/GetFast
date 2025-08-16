@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -25,6 +26,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -67,21 +71,27 @@ fun ListingList(
     onToggleFavorite: (Listing) -> Unit,
     highlightedIds: Set<String> = emptySet(),
     blinkingIds: Set<String> = emptySet(),
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     var selectedListing by remember { mutableStateOf<Listing?>(null) }
 
-    val shownListings = if (favoritesOnly) {
-        listings.filter { favorites.contains(it.id) }
-    } else {
-        listings
+    val shownListings = remember(listings, favoritesOnly, favorites) {
+        if (favoritesOnly) {
+            listings.filter { favorites.contains(it.id) }
+        } else {
+            listings
+        }
     }
 
-    LazyColumn(
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, onRefresh)
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .pullRefresh(pullRefreshState)
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
@@ -91,15 +101,27 @@ fun ListingList(
                 ),
             )
     ) {
-        items(shownListings) { listing ->
-            ListingCard(
-                listing = listing,
-                isFavorite = favorites.contains(listing.id),
-                onToggleFavorite = onToggleFavorite,
-                highlighted = highlightedIds.contains(listing.id),
-                blink = blinkingIds.contains(listing.id),
-            ) { selectedListing = listing }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            items(items = shownListings, key = { it.id }) { listing ->
+                ListingCard(
+                    listing = listing,
+                    isFavorite = favorites.contains(listing.id),
+                    onToggleFavorite = onToggleFavorite,
+                    highlighted = highlightedIds.contains(listing.id),
+                    blink = blinkingIds.contains(listing.id),
+                ) { selectedListing = listing }
+            }
         }
+
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 
     selectedListing?.let { listing ->
