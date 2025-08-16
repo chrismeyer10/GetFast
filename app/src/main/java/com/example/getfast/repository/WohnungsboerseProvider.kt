@@ -14,7 +14,7 @@ class WohnungsboerseProvider(
     override val source: ListingSource = ListingSource.WOHNUNGSBOERSE
 
     override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
-        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8)
+        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8.toString())
         val price = filter.maxPrice?.let { "?maxMiete=$it" } ?: ""
         val url = if (price.isEmpty()) {
             "https://www.wohnungsboerse.net/$city/mietwohnungen"
