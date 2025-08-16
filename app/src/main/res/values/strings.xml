@@ -19,4 +19,10 @@
     <string name="city_label">Stadt</string>
     <string name="max_price_label">Max. Preis (€)</string>
     <string name="apply_filters">Filter anwenden</string>
+    <string name="open_settings">Einstellungen</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="back">Zurück</string>
+    <string name="source_kleinanzeigen">Kleinanzeigen</string>
+    <string name="source_immoscout">ImmoScout</string>
+    <string name="dark_mode">Dunkler Modus</string>
 </resources>

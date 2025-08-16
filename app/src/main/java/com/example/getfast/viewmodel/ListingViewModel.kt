@@ -5,13 +5,14 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.getfast.model.Listing
 import com.example.getfast.model.SearchFilter
-import com.example.getfast.repository.EbayRepository
+import com.example.getfast.repository.ListingRepository
 import java.text.DateFormat
 import java.util.Date
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "favorites")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 /**
  * ViewModel hält Zustand und Geschäftslogik der Listing-Ansicht.
@@ -28,10 +29,11 @@ class ListingViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
 
-    private val repository = EbayRepository()
+    private val repository = ListingRepository()
 
     private val dataStore = application.dataStore
     private val favoritesKey = stringSetPreferencesKey("favorites")
+    private val darkModeKey = booleanPreferencesKey("dark_mode")
 
     private val _listings = MutableStateFlow<List<Listing>>(emptyList())
     val listings: StateFlow<List<Listing>> = _listings
@@ -46,12 +48,17 @@ class ListingViewModel(
     private val _favorites = MutableStateFlow<Set<String>>(emptySet())
     val favorites: StateFlow<Set<String>> = _favorites
 
+    private val _darkMode = MutableStateFlow(false)
+    val darkMode: StateFlow<Boolean> = _darkMode
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
     init {
         viewModelScope.launch {
-            _favorites.value = dataStore.data.first()[favoritesKey] ?: emptySet()
+            val prefs = dataStore.data.first()
+            _favorites.value = prefs[favoritesKey] ?: emptySet()
+            _darkMode.value = prefs[darkModeKey] ?: false
         }
     }
 
@@ -88,6 +95,13 @@ class ListingViewModel(
         }
         viewModelScope.launch {
             dataStore.edit { it[favoritesKey] = _favorites.value }
+        }
+    }
+
+    fun setDarkMode(enabled: Boolean) {
+        _darkMode.value = enabled
+        viewModelScope.launch {
+            dataStore.edit { it[darkModeKey] = enabled }
         }
     }
 
