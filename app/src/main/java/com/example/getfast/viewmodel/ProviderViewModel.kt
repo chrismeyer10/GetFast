@@ -29,6 +29,9 @@ class ProviderViewModel(
     private val _listings = MutableStateFlow<List<Listing>>(emptyList())
     val listings: StateFlow<List<Listing>> = _listings
 
+    private val _filter = MutableStateFlow(SearchFilter(sources = setOf(source)))
+    val filter: StateFlow<SearchFilter> = _filter
+
     private val formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
     private val _lastFetchTime = MutableStateFlow<String?>(null)
     val lastFetchTime: StateFlow<String?> = _lastFetchTime
@@ -42,11 +45,18 @@ class ProviderViewModel(
     fun refreshListings() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            val filter = SearchFilter(sources = setOf(source))
-            _listings.value = repository.fetchLatestListings(filter)
+            _listings.value = repository.fetchLatestListings(_filter.value)
             _lastFetchTime.value = formatter.format(Date())
             _isRefreshing.value = false
         }
+    }
+
+    /**
+     * Aktualisiert den Filter und lädt sofort neue Daten.
+     */
+    fun updateFilter(newFilter: SearchFilter) {
+        _filter.value = newFilter
+        refreshListings()
     }
 
     companion object {
