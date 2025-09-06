@@ -14,7 +14,7 @@ class ImmoscoutProvider(
     override val source: ListingSource = ListingSource.IMMOSCOUT
 
     override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
-        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8.toString())
+        val city = URLEncoder.encode(filter.city.pathFor(source), StandardCharsets.UTF_8.toString())
         val price = filter.maxPrice?.let { "&price=-$it" } ?: ""
         val url = "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=$city$price"
         return runCatching {

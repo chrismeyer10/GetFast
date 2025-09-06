@@ -14,7 +14,7 @@ class ImmoweltProvider(
     override val source: ListingSource = ListingSource.IMMOWELT
 
     override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
-        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8.toString())
+        val city = URLEncoder.encode(filter.city.pathFor(source), StandardCharsets.UTF_8.toString())
         val price = filter.maxPrice?.let { "&maxprice=$it" } ?: ""
         val url = "https://www.immowelt.de/suche/wohnung-mieten?city=$city$price"
         return runCatching {
