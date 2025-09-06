@@ -14,7 +14,7 @@ class ImmonetProvider(
     override val source: ListingSource = ListingSource.IMMONET
 
     override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
-        val city = URLEncoder.encode(filter.city.displayName, StandardCharsets.UTF_8.toString())
+        val city = URLEncoder.encode(filter.city.pathFor(source), StandardCharsets.UTF_8.toString())
         val price = filter.maxPrice?.let { "&toprice=$it" } ?: ""
         val url = "https://www.immonet.de/wohnung-mieten.html?city=$city$price"
         return runCatching {
