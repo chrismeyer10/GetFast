@@ -1,5 +1,6 @@
 package com.example.getfast.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ fun ArchiveScreen(
     onToggleFavorite: (Listing) -> Unit,
     onBack: () -> Unit,
 ) {
+    BackHandler(onBack = onBack)
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

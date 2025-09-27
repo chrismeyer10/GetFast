@@ -1,5 +1,6 @@
 package com.example.getfast.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,9 +46,12 @@ fun ProviderSettingsScreen(
     onApply: (SearchFilter) -> Unit,
     onBack: () -> Unit,
 ) {
+    BackHandler(onBack = onBack)
     var selectedCity by remember { mutableStateOf(filter.city) }
+    var cityQuery by remember { mutableStateOf(filter.city.displayName) }
     var priceText by remember { mutableStateOf(filter.maxPrice?.toString() ?: "") }
     var daysText by remember { mutableStateOf(filter.maxAgeDays.toString()) }
+    val allCities = remember { City.values().toList() }
 
     Column(
         modifier = Modifier
@@ -65,28 +69,60 @@ fun ProviderSettingsScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         var expanded by remember { mutableStateOf(false) }
+        val filteredCities = remember(cityQuery) {
+            val query = cityQuery.trim()
+            if (query.isEmpty()) {
+                allCities
+            } else {
+                allCities.filter { it.displayName.contains(query, ignoreCase = true) }
+            }
+        }
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
             modifier = Modifier.fillMaxWidth()
         ) {
             OutlinedTextField(
-                value = selectedCity.displayName,
-                onValueChange = {},
+                value = cityQuery,
+                onValueChange = { input ->
+                    cityQuery = input
+                    expanded = true
+                    val normalized = input.trim()
+                    val exactMatch = allCities.firstOrNull { city ->
+                        city.displayName.equals(normalized, ignoreCase = true)
+                    }
+                    val suggestions = if (normalized.isEmpty()) allCities else allCities.filter {
+                        it.displayName.contains(normalized, ignoreCase = true)
+                    }
+                    if (exactMatch != null) {
+                        selectedCity = exactMatch
+                    } else if (suggestions.isNotEmpty() && selectedCity !in suggestions) {
+                        selectedCity = suggestions.first()
+                    }
+                },
                 label = { Text(text = stringResource(id = R.string.city_label)) },
-                readOnly = true,
+                singleLine = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier.menuAnchor().fillMaxWidth()
             )
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                City.values().forEach { city ->
+                if (filteredCities.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text(city.displayName) },
-                        onClick = {
-                            selectedCity = city
-                            expanded = false
-                        }
+                        text = { Text(text = stringResource(id = R.string.no_city_results)) },
+                        enabled = false,
+                        onClick = {}
                     )
+                } else {
+                    filteredCities.forEach { city ->
+                        DropdownMenuItem(
+                            text = { Text(city.displayName) },
+                            onClick = {
+                                selectedCity = city
+                                cityQuery = city.displayName
+                                expanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
