@@ -12,6 +12,21 @@ data class City(
     val isCustom: Boolean = false,
     private val providerOverrides: Map<ListingSource, String> = emptyMap(),
 ) {
+    private val normalizedName: String = normalize(displayName)
+
+    fun matchesQuery(query: String): Boolean {
+        if (query.isBlank()) return true
+        val normalizedQuery = normalize(query)
+        if (normalizedQuery.isEmpty()) return false
+        return normalizedName.contains(normalizedQuery)
+    }
+
+    fun matchesName(name: String): Boolean {
+        val normalized = normalize(name)
+        if (normalized.isEmpty()) return false
+        return normalizedName == normalized
+    }
+
     /**
      * Returns the provider specific path or query value for this city. Providers that accept
      * free text queries simply receive the trimmed [displayName], while providers that require
@@ -30,6 +45,18 @@ data class City(
     }
 
     companion object {
+        private val DIACRITICS_REGEX = "\\p{InCombiningDiacriticalMarks}+".toRegex()
+
+        internal fun normalize(value: String): String {
+            val trimmed = value.trim()
+            if (trimmed.isEmpty()) return ""
+            val normalized = Normalizer.normalize(trimmed, Normalizer.Form.NFD)
+            val withoutDiacritics = DIACRITICS_REGEX.replace(normalized, "")
+            return withoutDiacritics
+                .replace("ß", "ss")
+                .lowercase(Locale.GERMAN)
+        }
+
         fun custom(name: String): City = City(name.trim(), isCustom = true)
     }
 }
@@ -49,9 +76,8 @@ object CityCatalog {
     val defaultCity: City = germany.first()
 
     fun findByName(name: String): City? {
-        val normalized = name.trim()
-        if (normalized.isEmpty()) return null
-        return germany.firstOrNull { it.displayName.equals(normalized, ignoreCase = true) }
+        if (name.isBlank()) return null
+        return germany.firstOrNull { it.matchesName(name) }
     }
 }
 

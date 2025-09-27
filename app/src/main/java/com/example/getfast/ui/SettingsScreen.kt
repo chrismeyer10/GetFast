@@ -60,9 +60,7 @@ data class SettingsScreenState(
             return if (trimmedQuery.isEmpty()) {
                 allCities
             } else {
-                allCities.filter { city ->
-                    city.displayName.contains(trimmedQuery, ignoreCase = true)
-                }
+                allCities.filter { city -> city.matchesQuery(trimmedQuery) }
             }
         }
 
@@ -78,10 +76,7 @@ data class SettingsScreenState(
      * Hilfsfunktion zur Aktualisierung der Suchanfrage und der intern ausgewählten Stadt.
      */
     fun updateCityQuery(newQuery: String): SettingsScreenState {
-        val normalized = newQuery.trim()
-        val exactMatch = allCities.firstOrNull { city ->
-            city.displayName.equals(normalized, ignoreCase = true)
-        }
+        val exactMatch = allCities.firstOrNull { city -> city.matchesName(newQuery) }
         val updatedCity = exactMatch ?: selectedCity
         return copy(cityQuery = newQuery, selectedCity = updatedCity)
     }
