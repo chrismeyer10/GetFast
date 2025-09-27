@@ -9,18 +9,28 @@ import java.nio.charset.StandardCharsets
 /** Provider für Immowelt. */
 class ImmoweltProvider(
     private val fetcher: HtmlFetcher = JsoupHtmlFetcher(),
-    private val parser: ListingParser = ListingParser(),
+    private val parser: ProviderListingParser = ImmoweltListingParser(),
 ) : ListingProvider {
     override val source: ListingSource = ListingSource.IMMOWELT
 
-    override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
+    /**
+     * Kombiniert Filterparameter und liefert Immowelt-Listings.
+     */
+    override suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing> {
+        val url = buildRequestUrl(filter)
+        return runCatching {
+            val document = fetcher.fetch(url)
+            parser.parseListingsFromDocument(document)
+        }.getOrElse { emptyList() }
+    }
+
+    /**
+     * Erstellt die Such-URL für Immowelt.
+     */
+    private fun buildRequestUrl(filter: SearchFilter): String {
         val city = URLEncoder.encode(filter.city.pathFor(source), StandardCharsets.UTF_8.toString())
         val price = filter.maxPrice?.let { "&maxprice=$it" } ?: ""
-        val url = "https://www.immowelt.de/suche/wohnung-mieten?city=$city$price"
-        return runCatching {
-            val doc = fetcher.fetch(url)
-            parser.parseImmowelt(doc)
-        }.getOrElse { emptyList() }
+        return "https://www.immowelt.de/suche/wohnung-mieten?city=$city$price"
     }
 }
 

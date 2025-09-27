@@ -15,6 +15,6 @@ interface ListingProvider {
      * Lädt und parst Listings entsprechend des Filters.
      * Fehler sollten zu einer leeren Liste führen.
      */
-    suspend fun fetchListings(filter: SearchFilter): List<Listing>
+    suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing>
 }
 

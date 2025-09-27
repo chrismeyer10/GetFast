@@ -20,13 +20,12 @@ class ListingRepositoryTest {
                 return Jsoup.parse(html)
             }
         }
-        val parser = ListingParser()
         return when (source) {
-            ListingSource.IMMOSCOUT -> ImmoscoutProvider(fetcher, parser)
-            ListingSource.IMMONET -> ImmonetProvider(fetcher, parser)
-            ListingSource.IMMOWELT -> ImmoweltProvider(fetcher, parser)
-            ListingSource.WOHNUNGSBOERSE -> WohnungsboerseProvider(fetcher, parser)
-            ListingSource.KLEINANZEIGEN -> KleinanzeigenProvider(fetcher, parser)
+            ListingSource.IMMOSCOUT -> ImmoscoutProvider(fetcher, ImmoscoutListingParser())
+            ListingSource.IMMONET -> ImmonetProvider(fetcher, ImmonetListingParser())
+            ListingSource.IMMOWELT -> ImmoweltProvider(fetcher, ImmoweltListingParser())
+            ListingSource.WOHNUNGSBOERSE -> WohnungsboerseProvider(fetcher, WohnungsboerseListingParser())
+            ListingSource.KLEINANZEIGEN -> KleinanzeigenProvider(fetcher, KleinanzeigenListingParser())
         }
     }
 
@@ -38,7 +37,7 @@ class ListingRepositoryTest {
             )
         )
         val filter = SearchFilter(sources = setOf(ListingSource.IMMOSCOUT))
-        val listings = repo.fetchLatestListings(filter)
+        val listings = repo.fetchLatestListingsMatchingFilter(filter)
         assertTrue(listings.isNotEmpty(), "Expected listings from ImmoScout without Kleinanzeigen")
     }
 }

@@ -9,18 +9,28 @@ import java.nio.charset.StandardCharsets
 /** Provider für ImmoScout24. */
 class ImmoscoutProvider(
     private val fetcher: HtmlFetcher = JsoupHtmlFetcher(),
-    private val parser: ListingParser = ListingParser(),
+    private val parser: ProviderListingParser = ImmoscoutListingParser(),
 ) : ListingProvider {
     override val source: ListingSource = ListingSource.IMMOSCOUT
 
-    override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
+    /**
+     * Kombiniert Filterparameter zu einer URL und liefert die Listings.
+     */
+    override suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing> {
+        val url = buildRequestUrl(filter)
+        return runCatching {
+            val document = fetcher.fetch(url)
+            parser.parseListingsFromDocument(document)
+        }.getOrElse { emptyList() }
+    }
+
+    /**
+     * Erstellt die Such-URL für ImmoScout24.
+     */
+    private fun buildRequestUrl(filter: SearchFilter): String {
         val city = URLEncoder.encode(filter.city.pathFor(source), StandardCharsets.UTF_8.toString())
         val price = filter.maxPrice?.let { "&price=-$it" } ?: ""
-        val url = "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=$city$price"
-        return runCatching {
-            val doc = fetcher.fetch(url)
-            parser.parseImmoscout(doc)
-        }.getOrElse { emptyList() }
+        return "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=$city$price"
     }
 }
 

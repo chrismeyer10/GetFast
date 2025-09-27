@@ -9,17 +9,27 @@ import com.example.getfast.model.SearchFilter
  */
 class KleinanzeigenProvider(
     private val fetcher: HtmlFetcher = JsoupHtmlFetcher(),
-    private val parser: ListingParser = ListingParser(),
+    private val parser: ProviderListingParser = KleinanzeigenListingParser(),
 ) : ListingProvider {
     override val source: ListingSource = ListingSource.KLEINANZEIGEN
 
-    override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
-        val path = filter.city.pathFor(source)
-        val url = "https://www.kleinanzeigen.de/s-wohnung-mieten/$path"
+    /**
+     * Baut die Abfrage-URL und liefert die geparsten Listings zurück.
+     */
+    override suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing> {
+        val url = buildRequestUrl(filter)
         return runCatching {
-            val doc = fetcher.fetch(url)
-            parser.parse(doc)
+            val document = fetcher.fetch(url)
+            parser.parseListingsFromDocument(document)
         }.getOrElse { emptyList() }
+    }
+
+    /**
+     * Erzeugt die URL für die Kleinanzeigen-Suche.
+     */
+    private fun buildRequestUrl(filter: SearchFilter): String {
+        val path = filter.city.pathFor(source)
+        return "https://www.kleinanzeigen.de/s-wohnung-mieten/$path"
     }
 }
 

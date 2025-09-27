@@ -104,20 +104,20 @@ class MainActivity : ComponentActivity() {
                     ArchiveScreen(
                         listings = archivedListings,
                         favorites = favorites,
-                        onToggleFavorite = { viewModel.toggleFavorite(it) },
+                        onToggleFavorite = { viewModel.toggleFavoriteSelectionForListing(it) },
                         onBack = { showArchive = false }
                     )
                 } else if (showSettings) {
                     SettingsScreen(
                         filter = filter,
                         onApply = {
-                            viewModel.updateFilter(it)
+                            viewModel.updateFilterAndReloadListings(it)
                             showSettings = false
                         },
                         onBack = { showSettings = false },
                         onOpenArchive = { showArchive = true },
                         onReset = {
-                            viewModel.resetApp()
+                            viewModel.resetApplicationState()
                             showSettings = false
                         }
                     )
@@ -151,7 +151,7 @@ class MainActivity : ComponentActivity() {
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Spacer(modifier = Modifier.weight(1f))
-                            TextButton(onClick = { viewModel.refreshListings() }) {
+                            TextButton(onClick = { viewModel.refreshListingsFromRepository() }) {
                                 Text(text = stringResource(id = R.string.refresh))
                             }
                         }
@@ -180,7 +180,7 @@ class MainActivity : ComponentActivity() {
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         if (showFavoritesOnly && favorites.isNotEmpty()) {
-                            TextButton(onClick = { viewModel.clearFavorites() }) {
+                            TextButton(onClick = { viewModel.clearAllFavoriteListings() }) {
                                 Text(text = stringResource(id = R.string.clear_favorites))
                             }
                         }
@@ -194,12 +194,12 @@ class MainActivity : ComponentActivity() {
                         listings = tabFiltered,
                         favorites = favorites,
                         favoritesOnly = showFavoritesOnly,
-                        onToggleFavorite = { viewModel.toggleFavorite(it) },
+                        onToggleFavorite = { viewModel.toggleFavoriteSelectionForListing(it) },
                         highlightedIds = highlightedIds,
                         blinkingIds = blinkingIds.value,
                         isRefreshing = isRefreshing,
-                        onRefresh = { viewModel.refreshListings() },
-                        onArchive = { viewModel.archive(it) },
+                        onRefresh = { viewModel.refreshListingsFromRepository() },
+                        onArchive = { viewModel.archiveListing(it) },
                         modifier = Modifier.weight(1f),
                     )
                     Text(
@@ -210,7 +210,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        viewModel.refreshListings()
+        viewModel.refreshListingsFromRepository()
     }
 }
 }

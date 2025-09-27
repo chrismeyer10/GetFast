@@ -65,74 +65,130 @@ class ListingViewModel(
     /**
      * Lädt Listings vom Repository und aktualisiert den Zeitstempel.
      */
-    fun refreshListings() {
+    fun refreshListingsFromRepository() {
         viewModelScope.launch {
-            _isRefreshing.value = true
-            _listings.value = repository.fetchLatestListings(_filter.value)
-                .sortedByDescending { it.id.toLongOrNull() ?: Long.MIN_VALUE }
-            _lastFetchTime.value = formatter.format(Date())
-            _isRefreshing.value = false
+            startRefreshingState()
+            val sortedListings = loadAndSortListings()
+            updateListingsAndTimestamp(sortedListings)
+            stopRefreshingState()
         }
     }
 
     /**
      * Aktualisiert den Suchfilter und lädt sofort neue Daten.
      */
-    fun updateFilter(newFilter: SearchFilter) {
+    fun updateFilterAndReloadListings(newFilter: SearchFilter) {
         _filter.value = newFilter
-        refreshListings()
+        refreshListingsFromRepository()
     }
 
     /**
      * Merkt oder entfernt ein Listing aus den Favoriten.
      */
-    fun toggleFavorite(listing: Listing) {
+    fun toggleFavoriteSelectionForListing(listing: Listing) {
         val id = listing.id
-        _favorites.value = if (_favorites.value.contains(id)) {
-            _favorites.value - id
-        } else {
-            _favorites.value + id
-        }
-        viewModelScope.launch {
-            dataStore.edit { it[favoritesKey] = _favorites.value }
-        }
+        _favorites.value = computeUpdatedFavorites(id)
+        persistFavoritesAsync()
     }
 
 
     /**
      * Markiert ein Listing als archiviert und speichert den Zustand.
      */
-    fun archive(listing: Listing) {
+    fun archiveListing(listing: Listing) {
         val id = listing.id
         _archived.value = _archived.value + id
+        persistArchivedAsync()
+    }
+
+    /**
+     * Entfernt alle Favoriten und speichert den Zustand.
+     */
+    fun clearAllFavoriteListings() {
+        _favorites.value = emptySet()
+        persistFavoritesAsync(emptySet())
+    }
+
+    /**
+     * Setzt Favoriten, Archiv und Filter zurück.
+     */
+    fun resetApplicationState() {
+        _favorites.value = emptySet()
+        _archived.value = emptySet()
+        _filter.value = SearchFilter()
+        persistFavoritesAndArchivedAsync()
+        refreshListingsFromRepository()
+    }
+
+    /**
+     * Startet den Ladezustand.
+     */
+    private fun startRefreshingState() {
+        _isRefreshing.value = true
+    }
+
+    /**
+     * Stoppt den Ladezustand.
+     */
+    private fun stopRefreshingState() {
+        _isRefreshing.value = false
+    }
+
+    /**
+     * Lädt Listings aus dem Repository und sortiert sie nach ID.
+     */
+    private suspend fun loadAndSortListings(): List<Listing> {
+        val listings = repository.fetchLatestListingsMatchingFilter(_filter.value)
+        return listings.sortedByDescending { it.id.toLongOrNull() ?: Long.MIN_VALUE }
+    }
+
+    /**
+     * Speichert Listings und aktualisiert den Zeitstempel.
+     */
+    private fun updateListingsAndTimestamp(listings: List<Listing>) {
+        _listings.value = listings
+        _lastFetchTime.value = formatter.format(Date())
+    }
+
+    /**
+     * Ermittelt die neue Menge an Favoriten nach einem Toggle.
+     */
+    private fun computeUpdatedFavorites(id: String): Set<String> {
+        return if (_favorites.value.contains(id)) {
+            _favorites.value - id
+        } else {
+            _favorites.value + id
+        }
+    }
+
+    /**
+     * Speichert Favoriten asynchron.
+     */
+    private fun persistFavoritesAsync(customFavorites: Set<String>? = null) {
+        val favoritesToStore = customFavorites ?: _favorites.value
+        viewModelScope.launch {
+            dataStore.edit { it[favoritesKey] = favoritesToStore }
+        }
+    }
+
+    /**
+     * Speichert archivierte Listings asynchron.
+     */
+    private fun persistArchivedAsync() {
         viewModelScope.launch {
             dataStore.edit { it[archivedKey] = _archived.value }
         }
     }
 
     /**
-     * Entfernt alle Favoriten und speichert den Zustand.
+     * Speichert Favoriten und Archiv gleichzeitig.
      */
-    fun clearFavorites() {
-        _favorites.value = emptySet()
-        viewModelScope.launch {
-            dataStore.edit { it[favoritesKey] = emptySet() }
-        }
-    }
-
-    /**
-     * Setzt Favoriten, Archiv und Filter zurück.
-     */
-    fun resetApp() {
-        _favorites.value = emptySet()
-        _archived.value = emptySet()
-        _filter.value = SearchFilter()
+    private fun persistFavoritesAndArchivedAsync() {
         viewModelScope.launch {
             dataStore.edit {
-                it[favoritesKey] = emptySet()
-                it[archivedKey] = emptySet()
+                it[favoritesKey] = _favorites.value
+                it[archivedKey] = _archived.value
             }
         }
-        refreshListings()
     }
 }
