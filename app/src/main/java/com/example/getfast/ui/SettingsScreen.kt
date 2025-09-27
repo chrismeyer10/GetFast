@@ -45,41 +45,15 @@ import com.example.getfast.model.SearchFilter
  */
 data class SettingsScreenState(
     val selectedCity: City,
-    val cityQuery: String,
     val priceText: String,
     val daysText: String,
     val selectedSources: Set<ListingSource>,
     val allCities: List<City>,
 ) {
     /**
-     * Liefert die Städte, die zum aktuellen Suchtext passen, damit das Dropdown nicht unnötig filtert.
+     * Hilfsfunktion zum Aktualisieren der ausgewählten Stadt.
      */
-    val filteredCities: List<City>
-        get() {
-            val trimmedQuery = cityQuery.trim()
-            return if (trimmedQuery.isEmpty()) {
-                allCities
-            } else {
-                allCities.filter { city -> city.matchesQuery(trimmedQuery) }
-            }
-        }
-
-    /**
-     * Hilfsfunktion zum Aktualisieren der ausgewählten Stadt, wodurch zugleich die Suchanzeige angepasst wird.
-     */
-    fun updateSelectedCityAndQuery(newCity: City): SettingsScreenState = copy(
-        selectedCity = newCity,
-        cityQuery = newCity.displayName,
-    )
-
-    /**
-     * Hilfsfunktion zur Aktualisierung der Suchanfrage und der intern ausgewählten Stadt.
-     */
-    fun updateCityQuery(newQuery: String): SettingsScreenState {
-        val exactMatch = allCities.firstOrNull { city -> city.matchesName(newQuery) }
-        val updatedCity = exactMatch ?: selectedCity
-        return copy(cityQuery = newQuery, selectedCity = updatedCity)
-    }
+    fun updateSelectedCity(newCity: City): SettingsScreenState = copy(selectedCity = newCity)
 
     /**
      * Hilfsfunktion, mit der wir die Texteingabe für den Preis säubern und speichern.
@@ -125,7 +99,6 @@ fun createInitialSettingsScreenState(filter: SearchFilter): SettingsScreenState 
     val selectedCity = knownCity ?: filter.city
     return SettingsScreenState(
         selectedCity = selectedCity,
-        cityQuery = selectedCity.displayName,
         priceText = filter.maxPrice?.toString() ?: "",
         daysText = filter.maxAgeDays.toString(),
         selectedSources = filter.sources,
@@ -161,11 +134,8 @@ fun SettingsScreen(
         // Auswahlbereich für die Stadt inklusive Dropdown.
         CitySelectorSection(
             state = uiState,
-            onQueryChange = { newQuery ->
-                uiState = uiState.updateCityQuery(newQuery)
-            },
             onExpandedCityChosen = { chosenCity ->
-                uiState = uiState.updateSelectedCityAndQuery(chosenCity)
+                uiState = uiState.updateSelectedCity(chosenCity)
             }
         )
 
@@ -223,13 +193,12 @@ private fun SettingsHeaderSection(onBack: () -> Unit) {
 }
 
 /**
- * Zeigt das Dropdown zur Stadtauswahl inklusive Suchfeld.
+ * Zeigt das Dropdown zur Stadtauswahl ohne manuelle Eingabe.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CitySelectorSection(
     state: SettingsScreenState,
-    onQueryChange: (String) -> Unit,
     onExpandedCityChosen: (City) -> Unit,
 ) {
     // Lokaler State, ob das Dropdown geöffnet ist.
@@ -240,15 +209,13 @@ private fun CitySelectorSection(
         onExpandedChange = { expanded = !expanded },
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Texteingabe für den Suchbegriff.
+        // Anzeige der aktuell ausgewählten Stadt.
         OutlinedTextField(
-            value = state.cityQuery,
-            onValueChange = { input ->
-                onQueryChange(input)
-                expanded = true
-            },
+            value = state.selectedCity.displayName,
+            onValueChange = {},
             label = { Text(text = stringResource(id = R.string.city_label)) },
             singleLine = true,
+            readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor()
@@ -256,23 +223,13 @@ private fun CitySelectorSection(
         )
 
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            if (state.filteredCities.isNotEmpty()) {
-                state.filteredCities.forEach { city ->
-                    DropdownMenuItem(
-                        text = { Text(city.displayName) },
-                        onClick = {
-                            onExpandedCityChosen(city)
-                            expanded = false
-                        }
-                    )
-                }
-            }
-
-            if (state.filteredCities.isEmpty()) {
+            state.allCities.forEach { city ->
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(id = R.string.no_city_results)) },
-                    enabled = false,
-                    onClick = {},
+                    text = { Text(city.displayName) },
+                    onClick = {
+                        onExpandedCityChosen(city)
+                        expanded = false
+                    }
                 )
             }
         }

@@ -78,7 +78,11 @@ class ListingViewModel(
      * Aktualisiert den Suchfilter und lädt sofort neue Daten.
      */
     fun updateFilterAndReloadListings(newFilter: SearchFilter) {
+        val previousFilter = _filter.value
         _filter.value = newFilter
+        if (previousFilter.city != newFilter.city) {
+            _listings.value = emptyList()
+        }
         refreshListingsFromRepository()
     }
 
