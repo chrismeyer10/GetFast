@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -17,7 +16,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,18 +34,13 @@ import androidx.compose.ui.unit.dp
 import com.example.getfast.R
 import com.example.getfast.model.City
 import com.example.getfast.model.CityCatalog
-import com.example.getfast.model.ListingSource
 import com.example.getfast.model.SearchFilter
 
 /**
- * SettingsScreenState beschreibt den kompletten UI-Zustand der Einstellungsseite.
- * Durch die gebündelte Klasse lässt sich gut nachvollziehen, welche Werte aktuell angezeigt werden.
+ * SettingsScreenState beschreibt den UI-Zustand der Einstellungsseite.
  */
 data class SettingsScreenState(
     val selectedCity: City,
-    val priceText: String,
-    val daysText: String,
-    val selectedSources: Set<ListingSource>,
     val allCities: List<City>,
 ) {
     /**
@@ -56,38 +49,10 @@ data class SettingsScreenState(
     fun updateSelectedCity(newCity: City): SettingsScreenState = copy(selectedCity = newCity)
 
     /**
-     * Hilfsfunktion, mit der wir die Texteingabe für den Preis säubern und speichern.
-     */
-    fun updatePriceText(newText: String): SettingsScreenState = copy(
-        priceText = newText.filter { character -> character.isDigit() },
-    )
-
-    /**
-     * Hilfsfunktion, mit der wir die Tageingabe begrenzen und speichern.
-     */
-    fun updateDaysText(newText: String): SettingsScreenState = copy(
-        daysText = newText.filter { character -> character.isDigit() }.take(1),
-    )
-
-    /**
-     * Hilfsfunktion, um eine Quelle entweder hinzuzufügen oder zu entfernen.
-     */
-    fun toggleSource(source: ListingSource): SettingsScreenState = copy(
-        selectedSources = if (source in selectedSources) {
-            selectedSources - source
-        } else {
-            selectedSources + source
-        },
-    )
-
-    /**
      * Hilfsfunktion, die aus dem aktuellen Zustand das SearchFilter-Modell erzeugt.
      */
     fun toSearchFilter(): SearchFilter = SearchFilter(
         city = selectedCity,
-        maxPrice = priceText.toIntOrNull(),
-        maxAgeDays = daysText.toIntOrNull()?.coerceIn(0, 3) ?: 3,
-        sources = selectedSources,
     )
 }
 
@@ -99,9 +64,6 @@ fun createInitialSettingsScreenState(filter: SearchFilter): SettingsScreenState 
     val selectedCity = knownCity ?: filter.city
     return SettingsScreenState(
         selectedCity = selectedCity,
-        priceText = filter.maxPrice?.toString() ?: "",
-        daysText = filter.maxAgeDays.toString(),
-        selectedSources = filter.sources,
         allCities = CityCatalog.germany,
     )
 }
@@ -115,10 +77,8 @@ fun SettingsScreen(
     onOpenArchive: () -> Unit,
     onReset: () -> Unit,
 ) {
-    // Wir intercepten den Back-Button, damit die Navigation funktioniert.
     BackHandler(onBack = onBack)
 
-    // Wir halten den kompletten Zustand in einem State-Objekt, damit alle Unterkomponenten ihn nutzen können.
     var uiState by remember(filter) { mutableStateOf(createInitialSettingsScreenState(filter)) }
 
     Column(
@@ -126,12 +86,10 @@ fun SettingsScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Kopfbereich mit Back-Button und Titel.
         SettingsHeaderSection(onBack = onBack)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Auswahlbereich für die Stadt inklusive Dropdown.
         CitySelectorSection(
             state = uiState,
             onExpandedCityChosen = { chosenCity ->
@@ -139,33 +97,8 @@ fun SettingsScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Eingabefeld für den Preis.
-        PriceInputSection(
-            priceText = uiState.priceText,
-            onPriceChange = { newPrice -> uiState = uiState.updatePriceText(newPrice) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Eingabefeld für die maximale Anzahl Tage.
-        DaysInputSection(
-            daysText = uiState.daysText,
-            onDaysChange = { newDays -> uiState = uiState.updateDaysText(newDays) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Quellenbereich mit Chips für jeden Anbieter.
-        SourceSelectionSection(
-            selectedSources = uiState.selectedSources,
-            onSourceToggle = { source -> uiState = uiState.toggleSource(source) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Aktionsbereich mit Buttons.
         SettingsActionButtons(
             onApply = { onApply(uiState.toSearchFilter()) },
             onOpenArchive = onOpenArchive,
@@ -180,11 +113,9 @@ fun SettingsScreen(
 @Composable
 private fun SettingsHeaderSection(onBack: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        // Back-Button für die Navigation.
         IconButton(onClick = onBack) {
             Icon(Icons.Default.ArrowBack, contentDescription = stringResource(id = R.string.back))
         }
-        // Titeltext der Seite.
         Text(
             text = stringResource(id = R.string.settings_title),
             style = MaterialTheme.typography.titleLarge
@@ -201,7 +132,6 @@ private fun CitySelectorSection(
     state: SettingsScreenState,
     onExpandedCityChosen: (City) -> Unit,
 ) {
-    // Lokaler State, ob das Dropdown geöffnet ist.
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
@@ -209,7 +139,6 @@ private fun CitySelectorSection(
         onExpandedChange = { expanded = !expanded },
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Anzeige der aktuell ausgewählten Stadt.
         OutlinedTextField(
             value = state.selectedCity.displayName,
             onValueChange = {},
@@ -237,70 +166,7 @@ private fun CitySelectorSection(
 }
 
 /**
- * Zeigt das Feld für die maximale Miete in Euro.
- */
-@Composable
-private fun PriceInputSection(
-    priceText: String,
-    onPriceChange: (String) -> Unit,
-) {
-    OutlinedTextField(
-        value = priceText,
-        onValueChange = { newValue -> onPriceChange(newValue) },
-        label = { Text(text = stringResource(id = R.string.max_price_label)) },
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-/**
- * Zeigt das Feld für die maximale Anzahl an Tagen.
- */
-@Composable
-private fun DaysInputSection(
-    daysText: String,
-    onDaysChange: (String) -> Unit,
-) {
-    OutlinedTextField(
-        value = daysText,
-        onValueChange = { newValue -> onDaysChange(newValue) },
-        label = { Text(text = stringResource(id = R.string.max_days_label)) },
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-/**
- * Zeigt alle Anbieter in Form von FilterChips.
- */
-@Composable
-private fun SourceSelectionSection(
-    selectedSources: Set<ListingSource>,
-    onSourceToggle: (ListingSource) -> Unit,
-) {
-    val chunkedSources = ListingSource.values().toList().chunked(3)
-    chunkedSources.forEachIndexed { rowIndex, rowSources ->
-        Row(modifier = Modifier.fillMaxWidth()) {
-            rowSources.forEachIndexed { chipIndex, source ->
-                // Jeder Chip repräsentiert eine Quelle.
-                FilterChip(
-                    selected = source in selectedSources,
-                    onClick = { onSourceToggle(source) },
-                    label = { Text(text = stringResource(id = source.toLabelRes())) }
-                )
-                if (chipIndex < rowSources.lastIndex) {
-                    // Horizontaler Abstand zwischen den Chips.
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-            }
-        }
-        if (rowIndex < chunkedSources.lastIndex) {
-            // Vertikaler Abstand zwischen den Reihen.
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
-
-/**
- * Zeigt die drei Buttons zum Anwenden, Öffnen des Archivs und Zurücksetzen.
+ * Zeigt die Buttons zum Anwenden, Öffnen des Archivs und Zurücksetzen.
  */
 @Composable
 private fun SettingsActionButtons(
@@ -309,41 +175,24 @@ private fun SettingsActionButtons(
     onReset: () -> Unit,
 ) {
     Button(onClick = onApply, modifier = Modifier.fillMaxWidth()) {
-        // Beschriftung für den Anwenden-Button.
         Text(text = stringResource(id = R.string.apply_filters))
     }
 
     Spacer(modifier = Modifier.height(16.dp))
 
     Button(onClick = onOpenArchive, modifier = Modifier.fillMaxWidth()) {
-        // Beschriftung für das Archiv.
         Text(text = stringResource(id = R.string.open_archive))
     }
 
     Spacer(modifier = Modifier.height(8.dp))
 
     Button(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
-        // Beschriftung für den Reset.
         Text(text = stringResource(id = R.string.reset_app))
     }
 }
 
-/**
- * Wandelt eine Quelle in die passende Ressourcen-ID um.
- */
-private fun ListingSource.toLabelRes(): Int = when (this) {
-    ListingSource.KLEINANZEIGEN -> R.string.source_kleinanzeigen
-    ListingSource.IMMOSCOUT -> R.string.source_immoscout
-    ListingSource.IMMONET -> R.string.source_immonet
-    ListingSource.IMMOWELT -> R.string.source_immowelt
-    ListingSource.WOHNUNGSBOERSE -> R.string.source_wohnungsboerse
-}
-
 // region Previews
 
-/**
- * Vorschau für den kompletten Screen, um das Zusammenspiel zu testen.
- */
 @Preview(showBackground = true)
 @Composable
 private fun SettingsScreenPreview() {
@@ -356,58 +205,21 @@ private fun SettingsScreenPreview() {
     )
 }
 
-/**
- * Vorschau für den Header.
- */
 @Preview(showBackground = true)
 @Composable
 private fun SettingsHeaderSectionPreview() {
     SettingsHeaderSection(onBack = {})
 }
 
-/**
- * Vorschau für die Stadtauswahl.
- */
 @Preview(showBackground = true)
 @Composable
 private fun CitySelectorSectionPreview() {
     CitySelectorSection(
         state = createInitialSettingsScreenState(SearchFilter()),
-        onQueryChange = {},
         onExpandedCityChosen = {}
     )
 }
 
-/**
- * Vorschau für die Preiseingabe.
- */
-@Preview(showBackground = true)
-@Composable
-private fun PriceInputSectionPreview() {
-    PriceInputSection(priceText = "1500", onPriceChange = {})
-}
-
-/**
- * Vorschau für die Tageeingabe.
- */
-@Preview(showBackground = true)
-@Composable
-private fun DaysInputSectionPreview() {
-    DaysInputSection(daysText = "3", onDaysChange = {})
-}
-
-/**
- * Vorschau für die Quellen.
- */
-@Preview(showBackground = true)
-@Composable
-private fun SourceSelectionSectionPreview() {
-    SourceSelectionSection(selectedSources = setOf(ListingSource.IMMOSCOUT, ListingSource.IMMONET)) {}
-}
-
-/**
- * Vorschau für die Aktions-Buttons.
- */
 @Preview(showBackground = true)
 @Composable
 private fun SettingsActionButtonsPreview() {

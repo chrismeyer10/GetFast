@@ -1,12 +1,9 @@
 package com.example.getfast
 
-import com.example.getfast.repository.ImmonetListingParser
-import com.example.getfast.repository.ImmoscoutListingParser
-import com.example.getfast.repository.ImmoweltListingParser
 import com.example.getfast.repository.KleinanzeigenListingParser
-import com.example.getfast.repository.WohnungsboerseListingParser
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ListingParserTest {
@@ -27,50 +24,22 @@ class ListingParserTest {
     }
 
     @Test
-    fun parseImmoscout_returnsListings() {
-        val parser = ImmoscoutListingParser()
-        val doc = Jsoup.parse(loadHtml("immoscout.html"))
+    fun parseKleinanzeigen_marksSearchListings() {
+        val parser = KleinanzeigenListingParser()
+        val html = """
+            <html><body>
+                <article class=\"aditem\" data-adid=\"1\">
+                    <a href=\"/ad1\" class=\"ellipsis\">Suche Wohnung</a>
+                    <div class=\"aditem-main--top--right\">Heute</div>
+                    <div class=\"aditem-main--top--left\">Bezirk, Stadt</div>
+                    <div class=\"aditem-main--middle--price-shipping\">VB</div>
+                    <div class=\"aditem-main--middle--description\">Wir suchen dringend eine Wohnung.</div>
+                </article>
+            </body></html>
+        """.trimIndent()
+        val doc = Jsoup.parse(html)
         val listings = parser.parseListingsFromDocument(doc)
         assertEquals(1, listings.size)
-        val first = listings[0]
-        assertEquals("Immo 1", first.title)
-        assertEquals("200 €", first.price)
-        assertEquals("Bezirk", first.district)
-    }
-
-    @Test
-    fun parseImmonet_returnsListings() {
-        val parser = ImmonetListingParser()
-        val doc = Jsoup.parse(loadHtml("immonet.html"))
-        val listings = parser.parseListingsFromDocument(doc)
-        assertEquals(1, listings.size)
-        val first = listings[0]
-        assertEquals("Net 1", first.title)
-        assertEquals("300 €", first.price)
-        assertEquals("Bezirk", first.district)
-    }
-
-    @Test
-    fun parseImmowelt_returnsListings() {
-        val parser = ImmoweltListingParser()
-        val doc = Jsoup.parse(loadHtml("immowelt.html"))
-        val listings = parser.parseListingsFromDocument(doc)
-        assertEquals(1, listings.size)
-        val first = listings[0]
-        assertEquals("Welt 1", first.title)
-        assertEquals("400 €", first.price)
-        assertEquals("Bezirk", first.district)
-    }
-
-    @Test
-    fun parseWohnungsboerse_returnsListings() {
-        val parser = WohnungsboerseListingParser()
-        val doc = Jsoup.parse(loadHtml("wohnungsboerse.html"))
-        val listings = parser.parseListingsFromDocument(doc)
-        assertEquals(1, listings.size)
-        val first = listings[0]
-        assertEquals("Boerse 1", first.title)
-        assertEquals("500 €", first.price)
-        assertEquals("Bezirk", first.district)
+        assertTrue(listings.first().isSearch)
     }
 }
