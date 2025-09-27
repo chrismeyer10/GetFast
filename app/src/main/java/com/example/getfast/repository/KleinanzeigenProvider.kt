@@ -20,7 +20,14 @@ class KleinanzeigenProvider(
         val url = buildRequestUrl(filter)
         return runCatching {
             val document = fetcher.fetch(url)
-            parser.parseListingsFromDocument(document)
+            val parsedListings = parser.parseListingsFromDocument(document)
+            parsedListings.map { listing ->
+                if (listing.city.isBlank()) {
+                    listing.copy(city = filter.city.displayName)
+                } else {
+                    listing
+                }
+            }
         }.getOrElse { emptyList() }
     }
 
