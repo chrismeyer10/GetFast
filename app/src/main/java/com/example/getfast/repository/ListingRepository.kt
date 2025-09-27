@@ -1,5 +1,6 @@
 package com.example.getfast.repository
 
+import com.example.getfast.model.City
 import com.example.getfast.model.Listing
 import com.example.getfast.model.ListingSource
 import com.example.getfast.model.SearchFilter
@@ -21,9 +22,28 @@ class ListingRepository(
      */
     suspend fun fetchLatestListingsMatchingFilter(filter: SearchFilter): List<Listing> {
         val listingsFromProviders = collectListingsFromSelectedSources(filter)
-        val priceFilteredListings = applyMaxPriceFilter(listingsFromProviders, filter.maxPrice)
+        val cityFilteredListings = applyCityFilter(listingsFromProviders, filter.city)
+        val priceFilteredListings = applyMaxPriceFilter(cityFilteredListings, filter.maxPrice)
         val maxDays = filter.maxAgeDays.coerceAtMost(3)
         return applyMaxAgeFilter(priceFilteredListings, maxDays)
+    }
+
+    /**
+     * Entfernt Listings, die nicht zur ausgewählten Stadt passen.
+     */
+    private fun applyCityFilter(listings: List<Listing>, city: City): List<Listing> {
+        val normalizedTarget = City.normalize(city.displayName)
+        if (normalizedTarget.isEmpty()) {
+            return listings
+        }
+        return listings.filter { listing ->
+            val normalizedListingCity = City.normalize(listing.city)
+            normalizedListingCity.isNotEmpty() && (
+                normalizedListingCity == normalizedTarget ||
+                    normalizedListingCity.contains(normalizedTarget) ||
+                    normalizedTarget.contains(normalizedListingCity)
+                )
+        }
     }
 
     /**
