@@ -82,11 +82,7 @@ data class SettingsScreenState(
         val exactMatch = allCities.firstOrNull { city ->
             city.displayName.equals(normalized, ignoreCase = true)
         }
-        val updatedCity = when {
-            exactMatch != null -> exactMatch
-            normalized.isEmpty() -> selectedCity
-            else -> City.custom(newQuery)
-        }
+        val updatedCity = exactMatch ?: selectedCity
         return copy(cityQuery = newQuery, selectedCity = updatedCity)
     }
 
@@ -264,12 +260,6 @@ private fun CitySelectorSection(
                 .fillMaxWidth()
         )
 
-        val query = state.cityQuery.trim()
-        val hasExactMatch = state.filteredCities.any { city ->
-            city.displayName.equals(query, ignoreCase = true)
-        }
-        val shouldOfferCustomCity = query.isNotEmpty() && !hasExactMatch
-
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             if (state.filteredCities.isNotEmpty()) {
                 state.filteredCities.forEach { city ->
@@ -283,17 +273,7 @@ private fun CitySelectorSection(
                 }
             }
 
-            if (shouldOfferCustomCity) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.use_custom_city, query)) },
-                    onClick = {
-                        onExpandedCityChosen(City.custom(query))
-                        expanded = false
-                    }
-                )
-            }
-
-            if (state.filteredCities.isEmpty() && !shouldOfferCustomCity) {
+            if (state.filteredCities.isEmpty()) {
                 DropdownMenuItem(
                     text = { Text(text = stringResource(id = R.string.no_city_results)) },
                     enabled = false,

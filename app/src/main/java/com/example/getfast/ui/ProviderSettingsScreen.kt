@@ -93,23 +93,13 @@ fun ProviderSettingsScreen(
                     val exactMatch = allCities.firstOrNull { city ->
                         city.displayName.equals(normalized, ignoreCase = true)
                     }
-                    selectedCity = when {
-                        exactMatch != null -> exactMatch
-                        normalized.isEmpty() -> selectedCity
-                        else -> City.custom(input)
-                    }
+                    selectedCity = exactMatch ?: selectedCity
                 },
                 label = { Text(text = stringResource(id = R.string.city_label)) },
                 singleLine = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier.menuAnchor().fillMaxWidth()
             )
-            val trimmedQuery = cityQuery.trim()
-            val hasExactMatch = filteredCities.any { city ->
-                city.displayName.equals(trimmedQuery, ignoreCase = true)
-            }
-            val shouldOfferCustom = trimmedQuery.isNotEmpty() && !hasExactMatch
-
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 filteredCities.forEach { city ->
                     DropdownMenuItem(
@@ -122,18 +112,7 @@ fun ProviderSettingsScreen(
                     )
                 }
 
-                if (shouldOfferCustom) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(id = R.string.use_custom_city, trimmedQuery)) },
-                        onClick = {
-                            selectedCity = City.custom(trimmedQuery)
-                            cityQuery = trimmedQuery
-                            expanded = false
-                        }
-                    )
-                }
-
-                if (filteredCities.isEmpty() && !shouldOfferCustom) {
+                if (filteredCities.isEmpty()) {
                     DropdownMenuItem(
                         text = { Text(text = stringResource(id = R.string.no_city_results)) },
                         enabled = false,
