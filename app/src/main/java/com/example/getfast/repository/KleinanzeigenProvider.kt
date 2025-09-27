@@ -1,7 +1,6 @@
 package com.example.getfast.repository
 
 import com.example.getfast.model.Listing
-import com.example.getfast.model.ListingSource
 import com.example.getfast.model.SearchFilter
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -12,13 +11,12 @@ import java.nio.charset.StandardCharsets
 class KleinanzeigenProvider(
     private val fetcher: HtmlFetcher = JsoupHtmlFetcher(),
     private val parser: ProviderListingParser = KleinanzeigenListingParser(),
-) : ListingProvider {
-    override val source: ListingSource = ListingSource.KLEINANZEIGEN
+) {
 
     /**
      * Baut die Abfrage-URL und liefert die geparsten Listings zurück.
      */
-    override suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing> {
+    suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing> {
         val url = buildRequestUrl(filter)
         return runCatching {
             val document = fetcher.fetch(url)
@@ -31,10 +29,9 @@ class KleinanzeigenProvider(
      */
     private fun buildRequestUrl(filter: SearchFilter): String {
         val location = URLEncoder.encode(
-            filter.city.pathFor(source),
+            filter.city.asQuery(),
             StandardCharsets.UTF_8.toString()
         )
         return "https://www.kleinanzeigen.de/s-wohnung-mieten/c203l0?locationStr=$location&radius=0"
     }
 }
-

@@ -5,12 +5,11 @@ import java.util.Locale
 
 /**
  * Represents a selectable city. The [displayName] is shown to the user and used as
- * search term unless a provider specific override is supplied.
+ * search term.
  */
 data class City(
     val displayName: String,
     val isCustom: Boolean = false,
-    private val providerOverrides: Map<ListingSource, String> = emptyMap(),
 ) {
     private val normalizedName: String = normalize(displayName)
 
@@ -28,21 +27,9 @@ data class City(
     }
 
     /**
-     * Returns the provider specific path or query value for this city. Providers that accept
-     * free text queries simply receive the trimmed [displayName], while providers that require
-     * slugs get a generated representation.
+     * Returns the trimmed city name suitable for use in search queries.
      */
-    fun pathFor(source: ListingSource): String {
-        providerOverrides[source]?.let { return it }
-        val normalized = displayName.trim()
-        return when (source) {
-            ListingSource.WOHNUNGSBOERSE -> normalized
-            ListingSource.KLEINANZEIGEN -> normalized
-            ListingSource.IMMOSCOUT,
-            ListingSource.IMMONET,
-            ListingSource.IMMOWELT -> normalized
-        }
-    }
+    fun asQuery(): String = displayName.trim()
 
     companion object {
         private val DIACRITICS_REGEX = "\\p{InCombiningDiacriticalMarks}+".toRegex()
@@ -80,5 +67,3 @@ object CityCatalog {
         return germany.firstOrNull { it.matchesName(name) }
     }
 }
-
-
