@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.getfast.R
 import com.example.getfast.model.City
+import com.example.getfast.model.CityCatalog
 import com.example.getfast.model.ListingSource
 import com.example.getfast.model.SearchFilter
 
@@ -55,14 +56,13 @@ data class SettingsScreenState(
      */
     val filteredCities: List<City>
         get() {
-            // Wir trimmen den Text, um sowohl führende als auch abschließende Leerzeichen zu ignorieren.
             val trimmedQuery = cityQuery.trim()
             return if (trimmedQuery.isEmpty()) {
-                // Ohne Suchtext zeigen wir alle Städte an.
                 allCities
             } else {
-                // Mit Suchtext filtern wir nach Übereinstimmungen im Namen.
-                allCities.filter { city -> city.displayName.contains(trimmedQuery, ignoreCase = true) }
+                allCities.filter { city ->
+                    city.displayName.contains(trimmedQuery, ignoreCase = true)
+                }
             }
         }
 
@@ -79,24 +79,15 @@ data class SettingsScreenState(
      */
     fun updateCityQuery(newQuery: String): SettingsScreenState {
         val normalized = newQuery.trim()
-        val suggestions = if (normalized.isEmpty()) {
-            allCities
-        } else {
-            allCities.filter { city -> city.displayName.contains(normalized, ignoreCase = true) }
-        }
         val exactMatch = allCities.firstOrNull { city ->
             city.displayName.equals(normalized, ignoreCase = true)
         }
         val updatedCity = when {
             exactMatch != null -> exactMatch
-            suggestions.isNotEmpty() && selectedCity !in suggestions -> suggestions.first()
-            else -> selectedCity
+            normalized.isEmpty() -> selectedCity
+            else -> City.custom(newQuery)
         }
-        // Wir geben den neuen Text und die potenziell aktualisierte Stadt zurück.
-        return copy(
-            cityQuery = newQuery,
-            selectedCity = updatedCity,
-        )
+        return copy(cityQuery = newQuery, selectedCity = updatedCity)
     }
 
     /**
@@ -138,14 +129,18 @@ data class SettingsScreenState(
 /**
  * Erzeugt den Startzustand für den Screen basierend auf dem übergebenen Filter.
  */
-fun createInitialSettingsScreenState(filter: SearchFilter): SettingsScreenState = SettingsScreenState(
-    selectedCity = filter.city,
-    cityQuery = filter.city.displayName,
-    priceText = filter.maxPrice?.toString() ?: "",
-    daysText = filter.maxAgeDays.toString(),
-    selectedSources = filter.sources,
-    allCities = City.values().toList(),
-)
+fun createInitialSettingsScreenState(filter: SearchFilter): SettingsScreenState {
+    val knownCity = CityCatalog.findByName(filter.city.displayName)
+    val selectedCity = knownCity ?: filter.city
+    return SettingsScreenState(
+        selectedCity = selectedCity,
+        cityQuery = selectedCity.displayName,
+        priceText = filter.maxPrice?.toString() ?: "",
+        daysText = filter.maxAgeDays.toString(),
+        selectedSources = filter.sources,
+        allCities = CityCatalog.germany,
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -269,16 +264,14 @@ private fun CitySelectorSection(
                 .fillMaxWidth()
         )
 
+        val query = state.cityQuery.trim()
+        val hasExactMatch = state.filteredCities.any { city ->
+            city.displayName.equals(query, ignoreCase = true)
+        }
+        val shouldOfferCustomCity = query.isNotEmpty() && !hasExactMatch
+
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            if (state.filteredCities.isEmpty()) {
-                // Keine Ergebnisse gefunden, daher deaktivierten Hinweis anzeigen.
-                DropdownMenuItem(
-                    text = { Text(text = stringResource(id = R.string.no_city_results)) },
-                    enabled = false,
-                    onClick = {},
-                )
-            } else {
-                // Für jede Stadt einen Menüeintrag anzeigen.
+            if (state.filteredCities.isNotEmpty()) {
                 state.filteredCities.forEach { city ->
                     DropdownMenuItem(
                         text = { Text(city.displayName) },
@@ -288,6 +281,24 @@ private fun CitySelectorSection(
                         }
                     )
                 }
+            }
+
+            if (shouldOfferCustomCity) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.use_custom_city, query)) },
+                    onClick = {
+                        onExpandedCityChosen(City.custom(query))
+                        expanded = false
+                    }
+                )
+            }
+
+            if (state.filteredCities.isEmpty() && !shouldOfferCustomCity) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.no_city_results)) },
+                    enabled = false,
+                    onClick = {},
+                )
             }
         }
     }
