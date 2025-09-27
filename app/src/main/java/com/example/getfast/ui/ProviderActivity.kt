@@ -59,7 +59,7 @@ abstract class ProviderActivity : ComponentActivity() {
                     ProviderSettingsScreen(
                         filter = filter,
                         onApply = {
-                            viewModel.updateFilter(it)
+                            viewModel.updateFilterAndReloadListings(it)
                             showSettings = false
                         },
                         onBack = { showSettings = false },
@@ -83,7 +83,7 @@ abstract class ProviderActivity : ComponentActivity() {
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Spacer(modifier = Modifier.weight(1f))
-                            TextButton(onClick = { viewModel.refreshListings() }) {
+                            TextButton(onClick = { viewModel.refreshListingsFromRepository() }) {
                                 Text(text = stringResource(id = R.string.refresh))
                             }
                         }
@@ -95,7 +95,7 @@ abstract class ProviderActivity : ComponentActivity() {
                             highlightedIds = emptySet(),
                             blinkingIds = emptySet(),
                             isRefreshing = isRefreshing,
-                            onRefresh = { viewModel.refreshListings() },
+                            onRefresh = { viewModel.refreshListingsFromRepository() },
                             onArchive = {},
                             modifier = Modifier.weight(1f),
                         )
@@ -103,7 +103,7 @@ abstract class ProviderActivity : ComponentActivity() {
                 }
             }
         }
-        viewModel.refreshListings()
+        viewModel.refreshListingsFromRepository()
     }
 }
 

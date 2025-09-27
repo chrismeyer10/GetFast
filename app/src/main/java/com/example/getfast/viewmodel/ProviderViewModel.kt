@@ -42,21 +42,42 @@ class ProviderViewModel(
     /**
      * Lädt die neuesten Listings für den konfigurierten Anbieter.
      */
-    fun refreshListings() {
+    fun refreshListingsFromRepository() {
         viewModelScope.launch {
-            _isRefreshing.value = true
-            _listings.value = repository.fetchLatestListings(_filter.value)
-            _lastFetchTime.value = formatter.format(Date())
-            _isRefreshing.value = false
+            startRefreshingState()
+            _listings.value = repository.fetchLatestListingsMatchingFilter(_filter.value)
+            updateTimestamp()
+            stopRefreshingState()
         }
     }
 
     /**
      * Aktualisiert den Filter und lädt sofort neue Daten.
      */
-    fun updateFilter(newFilter: SearchFilter) {
+    fun updateFilterAndReloadListings(newFilter: SearchFilter) {
         _filter.value = newFilter
-        refreshListings()
+        refreshListingsFromRepository()
+    }
+
+    /**
+     * Startet den Ladezustand.
+     */
+    private fun startRefreshingState() {
+        _isRefreshing.value = true
+    }
+
+    /**
+     * Stoppt den Ladezustand.
+     */
+    private fun stopRefreshingState() {
+        _isRefreshing.value = false
+    }
+
+    /**
+     * Aktualisiert den Zeitstempel der letzten Aktualisierung.
+     */
+    private fun updateTimestamp() {
+        _lastFetchTime.value = formatter.format(Date())
     }
 
     companion object {

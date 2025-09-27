@@ -9,18 +9,28 @@ import java.nio.charset.StandardCharsets
 /** Provider für Immonet. */
 class ImmonetProvider(
     private val fetcher: HtmlFetcher = JsoupHtmlFetcher(),
-    private val parser: ListingParser = ListingParser(),
+    private val parser: ProviderListingParser = ImmonetListingParser(),
 ) : ListingProvider {
     override val source: ListingSource = ListingSource.IMMONET
 
-    override suspend fun fetchListings(filter: SearchFilter): List<Listing> {
+    /**
+     * Baut die Immonet-URL und liefert die geparsten Listings.
+     */
+    override suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing> {
+        val url = buildRequestUrl(filter)
+        return runCatching {
+            val document = fetcher.fetch(url)
+            parser.parseListingsFromDocument(document)
+        }.getOrElse { emptyList() }
+    }
+
+    /**
+     * Erstellt die Such-URL für Immonet.
+     */
+    private fun buildRequestUrl(filter: SearchFilter): String {
         val city = URLEncoder.encode(filter.city.pathFor(source), StandardCharsets.UTF_8.toString())
         val price = filter.maxPrice?.let { "&toprice=$it" } ?: ""
-        val url = "https://www.immonet.de/wohnung-mieten.html?city=$city$price"
-        return runCatching {
-            val doc = fetcher.fetch(url)
-            parser.parseImmonet(doc)
-        }.getOrElse { emptyList() }
+        return "https://www.immonet.de/wohnung-mieten.html?city=$city$price"
     }
 }
 

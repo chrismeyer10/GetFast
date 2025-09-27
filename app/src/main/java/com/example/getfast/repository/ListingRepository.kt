@@ -13,65 +13,97 @@ import java.util.Locale
  * werden an implementierungen von [ListingProvider] delegiert.
  */
 class ListingRepository(
-    private val providers: Map<ListingSource, ListingProvider> = defaultProviders(),
+    private val providers: Map<ListingSource, ListingProvider> = createDefaultProviders(),
 ) {
     /**
-     * Lädt aktuelle Listings entsprechend dem Filter.
-     * Fehler einzelner Anbieter führen zu einer leeren Liste
-     * für diesen Anbieter.
+     * Lädt aktuelle Listings entsprechend dem Filter und kapselt die Filterlogik.
+     * Fehler einzelner Anbieter führen zu einer leeren Liste für diesen Anbieter.
      */
-    suspend fun fetchLatestListings(filter: SearchFilter): List<Listing> {
+    suspend fun fetchLatestListingsMatchingFilter(filter: SearchFilter): List<Listing> {
+        val listingsFromProviders = collectListingsFromSelectedSources(filter)
+        val priceFilteredListings = applyMaxPriceFilter(listingsFromProviders, filter.maxPrice)
+        val maxDays = filter.maxAgeDays.coerceAtMost(3)
+        return applyMaxAgeFilter(priceFilteredListings, maxDays)
+    }
+
+    /**
+     * Lädt Listings für alle im Filter gewählten Quellen.
+     */
+    private suspend fun collectListingsFromSelectedSources(filter: SearchFilter): List<Listing> {
         val results = mutableListOf<Listing>()
         for (source in filter.sources) {
             val provider = providers[source] ?: continue
-            results += provider.fetchListings(filter)
+            results += provider.fetchListingsForFilter(filter)
         }
-        val maxPrice = filter.maxPrice
-        val priceFiltered = if (maxPrice != null) {
-            results.filter { listing ->
-                val numeric = listing.price.replace("\\D".toRegex(), "")
-                val priceValue = numeric.toIntOrNull()
-                priceValue != null && priceValue <= maxPrice
-            }
-        } else {
-            results
+        return results
+    }
+
+    /**
+     * Entfernt Listings, die über dem Maximalpreis liegen.
+     */
+    private fun applyMaxPriceFilter(listings: List<Listing>, maxPrice: Int?): List<Listing> {
+        if (maxPrice == null) {
+            return listings
         }
-        val maxDays = filter.maxAgeDays.coerceAtMost(3)
-        return priceFiltered.filter { listing ->
-            isWithinDays(listing.date, maxDays)
+        return listings.filter { listing ->
+            val numeric = listing.price.replace("\\D".toRegex(), "")
+            val priceValue = numeric.toIntOrNull()
+            priceValue != null && priceValue <= maxPrice
         }
     }
 
-    private fun isWithinDays(dateText: String, maxDays: Int): Boolean {
-        val date = parseDate(dateText) ?: return true
+    /**
+     * Filtert Listings anhand des maximalen Alters in Tagen.
+     */
+    private fun applyMaxAgeFilter(listings: List<Listing>, maxDays: Int): List<Listing> {
+        return listings.filter { listing ->
+            isListingWithinMaxAgeDays(listing.date, maxDays)
+        }
+    }
+
+    /**
+     * Prüft, ob das Listing innerhalb der erlaubten Tage liegt.
+     */
+    private fun isListingWithinMaxAgeDays(dateText: String, maxDays: Int): Boolean {
+        val listingDate = parseListingDateText(dateText) ?: return true
         val threshold = LocalDate.now().minusDays(maxDays.toLong())
-        return !date.isBefore(threshold)
+        return !listingDate.isBefore(threshold)
     }
 
-    private fun parseDate(text: String): LocalDate? {
+    /**
+     * Wandelt einen Datumstext in ein Datum um.
+     */
+    private fun parseListingDateText(text: String): LocalDate? {
         val lower = text.lowercase(Locale.getDefault()).trim()
         val today = LocalDate.now()
         return when {
             lower.startsWith("heute") -> today
             lower.startsWith("gestern") -> today.minusDays(1)
-            else -> {
-                val cleaned = lower.substringBefore(",").substringBefore(" ").trim()
-                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-                runCatching { LocalDate.parse(cleaned, formatter) }.getOrNull()
-            }
+            else -> parseFormattedDate(lower)
         }
     }
 
+    /**
+     * Liest ein Datum im Format dd.MM.yyyy.
+     */
+    private fun parseFormattedDate(text: String): LocalDate? {
+        val cleaned = text.substringBefore(",").substringBefore(" ").trim()
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        return runCatching { LocalDate.parse(cleaned, formatter) }.getOrNull()
+    }
+
     companion object {
-        private fun defaultProviders(): Map<ListingSource, ListingProvider> {
+        /**
+         * Erstellt die Standard-Provider mit ihren Parsern.
+         */
+        private fun createDefaultProviders(): Map<ListingSource, ListingProvider> {
             val fetcher = JsoupHtmlFetcher()
-            val parser = ListingParser()
             return mapOf(
-                ListingSource.KLEINANZEIGEN to KleinanzeigenProvider(fetcher, parser),
-                ListingSource.IMMOSCOUT to ImmoscoutProvider(fetcher, parser),
-                ListingSource.IMMONET to ImmonetProvider(fetcher, parser),
-                ListingSource.IMMOWELT to ImmoweltProvider(fetcher, parser),
-                ListingSource.WOHNUNGSBOERSE to WohnungsboerseProvider(fetcher, parser),
+                ListingSource.KLEINANZEIGEN to KleinanzeigenProvider(fetcher, KleinanzeigenListingParser()),
+                ListingSource.IMMOSCOUT to ImmoscoutProvider(fetcher, ImmoscoutListingParser()),
+                ListingSource.IMMONET to ImmonetProvider(fetcher, ImmonetListingParser()),
+                ListingSource.IMMOWELT to ImmoweltProvider(fetcher, ImmoweltListingParser()),
+                ListingSource.WOHNUNGSBOERSE to WohnungsboerseProvider(fetcher, WohnungsboerseListingParser()),
             )
         }
     }

@@ -1,6 +1,10 @@
 package com.example.getfast
 
-import com.example.getfast.repository.ListingParser
+import com.example.getfast.repository.ImmonetListingParser
+import com.example.getfast.repository.ImmoscoutListingParser
+import com.example.getfast.repository.ImmoweltListingParser
+import com.example.getfast.repository.KleinanzeigenListingParser
+import com.example.getfast.repository.WohnungsboerseListingParser
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -10,10 +14,10 @@ class ListingParserTest {
         javaClass.getResource("/html/$name")!!.readText()
 
     @Test
-    fun parse_returnsAllListings() {
-        val parser = ListingParser()
+    fun parseKleinanzeigen_returnsAllListings() {
+        val parser = KleinanzeigenListingParser()
         val doc = Jsoup.parse(loadHtml("kleinanzeigen.html"))
-        val listings = parser.parse(doc)
+        val listings = parser.parseListingsFromDocument(doc)
         assertEquals(2, listings.size)
         val first = listings[0]
         assertEquals("Titel 1", first.title)
@@ -24,9 +28,9 @@ class ListingParserTest {
 
     @Test
     fun parseImmoscout_returnsListings() {
-        val parser = ListingParser()
+        val parser = ImmoscoutListingParser()
         val doc = Jsoup.parse(loadHtml("immoscout.html"))
-        val listings = parser.parseImmoscout(doc)
+        val listings = parser.parseListingsFromDocument(doc)
         assertEquals(1, listings.size)
         val first = listings[0]
         assertEquals("Immo 1", first.title)
@@ -36,9 +40,9 @@ class ListingParserTest {
 
     @Test
     fun parseImmonet_returnsListings() {
-        val parser = ListingParser()
+        val parser = ImmonetListingParser()
         val doc = Jsoup.parse(loadHtml("immonet.html"))
-        val listings = parser.parseImmonet(doc)
+        val listings = parser.parseListingsFromDocument(doc)
         assertEquals(1, listings.size)
         val first = listings[0]
         assertEquals("Net 1", first.title)
@@ -48,9 +52,9 @@ class ListingParserTest {
 
     @Test
     fun parseImmowelt_returnsListings() {
-        val parser = ListingParser()
+        val parser = ImmoweltListingParser()
         val doc = Jsoup.parse(loadHtml("immowelt.html"))
-        val listings = parser.parseImmowelt(doc)
+        val listings = parser.parseListingsFromDocument(doc)
         assertEquals(1, listings.size)
         val first = listings[0]
         assertEquals("Welt 1", first.title)
@@ -60,9 +64,9 @@ class ListingParserTest {
 
     @Test
     fun parseWohnungsboerse_returnsListings() {
-        val parser = ListingParser()
+        val parser = WohnungsboerseListingParser()
         val doc = Jsoup.parse(loadHtml("wohnungsboerse.html"))
-        val listings = parser.parseWohnungsboerse(doc)
+        val listings = parser.parseListingsFromDocument(doc)
         assertEquals(1, listings.size)
         val first = listings[0]
         assertEquals("Boerse 1", first.title)
