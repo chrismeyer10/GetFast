@@ -76,7 +76,7 @@ fun ProviderSettingsScreen(
             if (query.isEmpty()) {
                 allCities
             } else {
-                allCities.filter { it.displayName.contains(query, ignoreCase = true) }
+                allCities.filter { it.matchesQuery(query) }
             }
         }
         ExposedDropdownMenuBox(
@@ -89,10 +89,7 @@ fun ProviderSettingsScreen(
                 onValueChange = { input ->
                     cityQuery = input
                     expanded = true
-                    val normalized = input.trim()
-                    val exactMatch = allCities.firstOrNull { city ->
-                        city.displayName.equals(normalized, ignoreCase = true)
-                    }
+                    val exactMatch = allCities.firstOrNull { city -> city.matchesName(input) }
                     selectedCity = exactMatch ?: selectedCity
                 },
                 label = { Text(text = stringResource(id = R.string.city_label)) },
