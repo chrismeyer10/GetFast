@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.getfast.R
 import com.example.getfast.model.City
+import com.example.getfast.model.CityCatalog
 import com.example.getfast.model.SearchFilter
 
 /**
@@ -47,12 +48,13 @@ fun ProviderSettingsScreen(
     onBack: () -> Unit,
 ) {
     BackHandler(onBack = onBack)
-    var selectedCity by remember { mutableStateOf(filter.city) }
-    var cityQuery by remember { mutableStateOf(filter.city.displayName) }
+    val allCities = remember { CityCatalog.germany }
+    var selectedCity by remember(filter.city) {
+        mutableStateOf(CityCatalog.findByName(filter.city.displayName) ?: filter.city)
+    }
+    var cityQuery by remember { mutableStateOf(selectedCity.displayName) }
     var priceText by remember { mutableStateOf(filter.maxPrice?.toString() ?: "") }
     var daysText by remember { mutableStateOf(filter.maxAgeDays.toString()) }
-    val allCities = remember { City.values().toList() }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -91,13 +93,10 @@ fun ProviderSettingsScreen(
                     val exactMatch = allCities.firstOrNull { city ->
                         city.displayName.equals(normalized, ignoreCase = true)
                     }
-                    val suggestions = if (normalized.isEmpty()) allCities else allCities.filter {
-                        it.displayName.contains(normalized, ignoreCase = true)
-                    }
-                    if (exactMatch != null) {
-                        selectedCity = exactMatch
-                    } else if (suggestions.isNotEmpty() && selectedCity !in suggestions) {
-                        selectedCity = suggestions.first()
+                    selectedCity = when {
+                        exactMatch != null -> exactMatch
+                        normalized.isEmpty() -> selectedCity
+                        else -> City.custom(input)
                     }
                 },
                 label = { Text(text = stringResource(id = R.string.city_label)) },
@@ -105,24 +104,41 @@ fun ProviderSettingsScreen(
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier.menuAnchor().fillMaxWidth()
             )
+            val trimmedQuery = cityQuery.trim()
+            val hasExactMatch = filteredCities.any { city ->
+                city.displayName.equals(trimmedQuery, ignoreCase = true)
+            }
+            val shouldOfferCustom = trimmedQuery.isNotEmpty() && !hasExactMatch
+
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                if (filteredCities.isEmpty()) {
+                filteredCities.forEach { city ->
+                    DropdownMenuItem(
+                        text = { Text(city.displayName) },
+                        onClick = {
+                            selectedCity = city
+                            cityQuery = city.displayName
+                            expanded = false
+                        }
+                    )
+                }
+
+                if (shouldOfferCustom) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = R.string.use_custom_city, trimmedQuery)) },
+                        onClick = {
+                            selectedCity = City.custom(trimmedQuery)
+                            cityQuery = trimmedQuery
+                            expanded = false
+                        }
+                    )
+                }
+
+                if (filteredCities.isEmpty() && !shouldOfferCustom) {
                     DropdownMenuItem(
                         text = { Text(text = stringResource(id = R.string.no_city_results)) },
                         enabled = false,
                         onClick = {}
                     )
-                } else {
-                    filteredCities.forEach { city ->
-                        DropdownMenuItem(
-                            text = { Text(city.displayName) },
-                            onClick = {
-                                selectedCity = city
-                                cityQuery = city.displayName
-                                expanded = false
-                            }
-                        )
-                    }
                 }
             }
         }
