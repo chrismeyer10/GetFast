@@ -1,7 +1,9 @@
 package com.example.getfast
 
-import com.example.getfast.model.SearchFilter
+import com.example.getfast.model.CityCatalog
+import com.example.getfast.model.Listing
 import com.example.getfast.model.ListingSource
+import com.example.getfast.model.SearchFilter
 import com.example.getfast.repository.HtmlFetcher
 import com.example.getfast.repository.ImmoscoutListingParser
 import com.example.getfast.repository.ImmoscoutProvider
@@ -14,6 +16,7 @@ import com.example.getfast.repository.ListingRepository
 import com.example.getfast.repository.WohnungsboerseProvider
 import com.example.getfast.repository.KleinanzeigenListingParser
 import com.example.getfast.repository.WohnungsboerseListingParser
+import com.example.getfast.repository.ListingProvider
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -22,6 +25,13 @@ import org.junit.Test
 
 private class FakeFetcher(private val html: String) : HtmlFetcher {
     override suspend fun fetch(url: String): Document = Jsoup.parse(html)
+}
+
+private class FakeListingProvider(
+    override val source: ListingSource,
+    private val listings: List<Listing>,
+) : ListingProvider {
+    override suspend fun fetchListingsForFilter(filter: SearchFilter): List<Listing> = listings
 }
 
 class ListingRepositoryTest {
@@ -98,6 +108,56 @@ class ListingRepositoryTest {
         val first = listings[0]
         assertEquals("Boerse 1", first.title)
         assertEquals("500 €", first.price)
+    }
+
+    @Test
+    fun fetchLatestListings_filtersBySelectedCity() = runBlocking {
+        val provider = FakeListingProvider(
+            source = ListingSource.KLEINANZEIGEN,
+            listings = listOf(
+                Listing(
+                    id = "1",
+                    title = "Hamburg Mitte",
+                    url = "https://example.com/1",
+                    date = "",
+                    district = "Mitte",
+                    city = "Hamburg",
+                    price = "100 €",
+                    summary = "",
+                ),
+                Listing(
+                    id = "2",
+                    title = "Berlin Mitte",
+                    url = "https://example.com/2",
+                    date = "",
+                    district = "Mitte",
+                    city = "Berlin",
+                    price = "100 €",
+                    summary = "",
+                ),
+                Listing(
+                    id = "3",
+                    title = "Hamburg Barmbek",
+                    url = "https://example.com/3",
+                    date = "",
+                    district = "Barmbek",
+                    city = "Hamburg - Barmbek",
+                    price = "100 €",
+                    summary = "",
+                ),
+            ),
+        )
+        val hamburg = CityCatalog.findByName("Hamburg")!!
+        val filter = SearchFilter(
+            city = hamburg,
+            sources = setOf(ListingSource.KLEINANZEIGEN),
+        )
+        val repo = ListingRepository(providers = mapOf(ListingSource.KLEINANZEIGEN to provider))
+
+        val listings = repo.fetchLatestListingsMatchingFilter(filter)
+
+        val ids = listings.map { it.id }.sorted()
+        assertEquals(listOf("1", "3"), ids)
     }
 
     @Test
